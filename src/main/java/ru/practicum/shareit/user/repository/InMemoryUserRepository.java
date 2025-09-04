@@ -39,4 +39,10 @@ public class InMemoryUserRepository implements UserRepository {
     public Boolean existsById(Long userId) {
         return users.containsKey(userId);
     }
+
+    @Override
+    public Boolean existsByEmail(String email) {
+        return users.values().stream()
+                .anyMatch(user -> user.getEmail().equals(email));
+    }
 }
