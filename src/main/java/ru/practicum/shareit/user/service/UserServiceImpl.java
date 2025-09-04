@@ -20,7 +20,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(Long userId, User user) {
-        User existingUser = updateUserFields(user);
+        User existingUser = getUserById(userId);
+        updateUserFields(existingUser, user);
         return userRepository.save(existingUser);
     }
 
@@ -41,15 +42,13 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(userId);
     }
 
-    private User updateUserFields(User newUser) {
-        User existingUser = new User();
+    private void updateUserFields(User existingUser, User newUser) {
         if (newUser.getName() != null) {
             existingUser.setName(newUser.getName());
         }
         if (newUser.getEmail() != null) {
             existingUser.setEmail(newUser.getEmail());
         }
-        return existingUser;
     }
 
     private void validateExistingUser(Long userId) {
