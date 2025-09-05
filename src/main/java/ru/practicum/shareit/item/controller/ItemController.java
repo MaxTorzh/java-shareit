@@ -95,4 +95,15 @@ public class ItemController {
                 .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Удаление пользователя по ID.
+     *
+     * @param itemId идентификатор пользователя
+     */
+    @DeleteMapping("/{itemId}")
+    public void deleteItem(@PathVariable Long itemId) {
+        log.info("Получен запрос на удаление вещи с ID: {}", itemId);
+        itemService.deleteItem(itemId);
+    }
 }

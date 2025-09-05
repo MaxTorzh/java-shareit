@@ -78,4 +78,18 @@ public class ItemRequestController {
                 .map(ItemRequestMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Получение списка запросов других пользователей.
+     *
+     * @param userId ID пользователя, запрашивающего данные
+     * @return список запросов других пользователей
+     */
+    @GetMapping("/other")
+    public List<ItemRequestDto> getOtherUserRequests(@RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.info("Получен запрос на получение списка запросов других пользователей от пользователя с ID: {}", userId);
+        return itemRequestService.getOtherUserRequests(userId).stream()
+                .map(ItemRequestMapper::toDto)
+                .collect(Collectors.toList());
+    }
 }
