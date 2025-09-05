@@ -5,11 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.status.BookingStatus;
-import ru.practicum.shareit.exception.AccessDeniedException;
+import ru.practicum.shareit.booking.validator.BookingValidator;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 
@@ -17,19 +14,22 @@ import java.util.List;
 @AllArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
-    private final UserService userService;
-    private final ItemService itemService;
+    private final BookingValidator validator;
 
     @Override
     public Booking createBooking(Booking booking) {
-        validateBooking(booking);
+        validator.validateBookingCreation(booking);
         booking.setStatus(BookingStatus.WAITING);
         return bookingRepository.save(booking);
     }
 
     @Override
-    public Booking approveBooking(Long bookingId, Boolean approved) {
+    public Booking approveBooking(Long bookingId, Boolean approved, Long ownerId) {
         Booking booking = getBookingById(bookingId);
+
+        validator.validateOwnerRights(booking, ownerId);
+        validator.validateBookingStatusForApproval(booking);
+
         updateBookingStatus(booking, approved);
         return bookingRepository.save(booking);
     }
@@ -41,33 +41,33 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public Booking getBookingByIdWithAccessCheck(Long bookingId, Long userId) {
+        Booking booking = getBookingById(bookingId);
+        validator.validateBookingAccess(booking, userId);
+        return booking;
+    }
+
+    @Override
     public List<Booking> getUserBookings(Long userId) {
-        userService.getUserById(userId);
+        validator.validateUserExists(userId);
         return bookingRepository.findByBookerId(userId);
     }
 
     @Override
     public List<Booking> getOwnerBookings(Long ownerId) {
-        userService.getUserById(ownerId);
+        validator.validateUserExists(ownerId);
         return bookingRepository.findByItemOwnerId(ownerId);
     }
 
     @Override
-    public void cancelBooking(Long bookingId) {
+    public void cancelBooking(Long bookingId, Long userId) {
         Booking booking = getBookingById(bookingId);
+
+        validator.validateBookerRights(booking, userId);
+        validator.validateBookingStatusForCancellation(booking);
+
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
-    }
-
-    private void validateBooking(Booking booking) {
-        userService.getUserById(booking.getBooker().getId());
-        itemService.getItemById(booking.getItem().getId());
-        if (!booking.getItem().getIsAvailable()) {
-            throw new AccessDeniedException("Вещь недоступна для бронирования");
-        }
-        if (booking.getStartTime().isAfter(booking.getEndTime())) {
-            throw new ValidationException("Дата начала пользования должна быть до даты окончания");
-        }
     }
 
     private void updateBookingStatus(Booking booking, Boolean approved) {

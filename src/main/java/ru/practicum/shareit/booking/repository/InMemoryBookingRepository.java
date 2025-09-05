@@ -62,7 +62,7 @@ public class InMemoryBookingRepository implements BookingRepository {
     }
 
     @Override
-    public Boolean existsByItemAndStatus(Long itemId, BookingStatus status) {
+    public Boolean existsByItemIdAndStatus(Long itemId, BookingStatus status) {
         return bookings.values().stream()
                 .anyMatch(booking -> booking.getItem().getId().equals(itemId) &&
                         booking.getStatus() == status);

@@ -21,5 +21,5 @@ public interface BookingRepository {
 
     List<Booking> findByEndBefore(LocalDateTime endTime);
 
-    Boolean existsByItemAndStatus(Long itemId, BookingStatus status);
+    Boolean existsByItemIdAndStatus(Long itemId, BookingStatus status);
 }

@@ -7,7 +7,7 @@ import ru.practicum.shareit.user.model.User;
 import java.util.Optional;
 
 public class ItemRequestMapper {
-    private static ItemRequestDto toDto(ItemRequest itemRequest) {
+    public static ItemRequestDto toDto(ItemRequest itemRequest) {
         if (itemRequest == null) {
             return null;
         }
@@ -21,7 +21,7 @@ public class ItemRequestMapper {
         return dto;
     }
 
-    private static ItemRequest toItemRequest(ItemRequestDto dto, User requester) {
+    public static ItemRequest toItemRequest(ItemRequestDto dto, User requester) {
         if (dto == null) {
             return null;
         }

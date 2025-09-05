@@ -9,7 +9,7 @@ import ru.practicum.shareit.user.model.User;
 import java.util.Optional;
 
 public class BookingMapper {
-    private static BookingDto toDto(Booking booking) {
+    public static BookingDto toDto(Booking booking) {
         if (booking == null) {
             return null;
         }
@@ -20,14 +20,12 @@ public class BookingMapper {
         dto.setEndTime(booking.getEndTime());
         Optional.ofNullable(booking.getItem())
                 .ifPresent(item -> dto.setItemId(item.getId()));
-        Optional.ofNullable(booking.getBooker())
-                .ifPresent(booker -> dto.setBookerId(booker.getId()));
         Optional.ofNullable(booking.getStatus())
                 .ifPresent(status -> dto.setStatus(status.name()));
         return dto;
     }
 
-    private static Booking toBooking(BookingDto dto, Item item, User booker) {
+    public static Booking toBooking(BookingDto dto, Item item, User booker) {
         if (dto == null) {
             return null;
         }

@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.service.UserService;
@@ -18,6 +19,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item createItem(Item item) {
         userService.getUserById(item.getOwner().getId());
+        validateItemCreation(item);
         return itemRepository.save(item);
     }
 
@@ -60,6 +62,23 @@ public class ItemServiceImpl implements ItemService {
         }
         if (newItem.getIsAvailable() != null) {
             existingItem.setIsAvailable(newItem.getIsAvailable());
+        }
+    }
+
+    private void validateItemCreation(Item item) {
+        if (item.getOwner() == null || item.getOwner().getId() == null) {
+            throw new ValidationException("Владелец обязателен");
+        }
+        userService.getUserById(item.getOwner().getId());
+
+        if (item.getName() == null || item.getName().isBlank()) {
+            throw new ValidationException("Название обязательно");
+        }
+        if (item.getDescription() == null || item.getDescription().isBlank()) {
+            throw new ValidationException("Описание обязательно");
+        }
+        if (item.getIsAvailable() == null) {
+            throw new ValidationException("Статус доступности обязателен");
         }
     }
 }
