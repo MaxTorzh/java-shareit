@@ -16,7 +16,7 @@ public class ItemMapper {
         dto.setId(item.getId());
         dto.setName(item.getName());
         dto.setDescription(item.getDescription());
-        dto.setIsAvailable(item.getIsAvailable());
+        dto.setAvailable(item.getAvailable());
         Optional.ofNullable(item.getOwner())
                 .ifPresent(user -> dto.setOwnerId(user.getId()));
         dto.setRequestId(item.getRequestId());
@@ -32,7 +32,7 @@ public class ItemMapper {
         item.setId(dto.getId());
         item.setName(dto.getName());
         item.setDescription(dto.getDescription());
-        item.setIsAvailable(dto.getIsAvailable());
+        item.setAvailable(dto.getAvailable());
         item.setOwner(owner);
         item.setRequestId(dto.getRequestId());
         return item;

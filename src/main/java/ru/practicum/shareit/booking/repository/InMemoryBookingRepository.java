@@ -57,7 +57,7 @@ public class InMemoryBookingRepository implements BookingRepository {
     @Override
     public List<Booking> findByEndBefore(LocalDateTime endTime) {
         return bookings.values().stream()
-                .filter(booking -> booking.getEndTime().isBefore(endTime))
+                .filter(booking -> booking.getEnd().isBefore(endTime))
                 .collect(Collectors.toList());
     }
 

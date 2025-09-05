@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,8 +14,7 @@ public class ItemDto {
     private String name;
     @NotBlank(message = "Описание предмета не может быть пустым")
     private String description;
-    @JsonProperty("available")
-    private Boolean isAvailable;
+    private Boolean available;
     private Long ownerId;
     private Long requestId;
 }

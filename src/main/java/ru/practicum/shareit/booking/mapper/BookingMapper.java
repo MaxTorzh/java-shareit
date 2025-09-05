@@ -16,8 +16,8 @@ public class BookingMapper {
 
         BookingDto dto = new BookingDto();
         dto.setId(booking.getId());
-        dto.setStartTime(booking.getStartTime());
-        dto.setEndTime(booking.getEndTime());
+        dto.setStart(booking.getStart());
+        dto.setEnd(booking.getEnd());
         Optional.ofNullable(booking.getItem())
                 .ifPresent(item -> dto.setItemId(item.getId()));
         Optional.ofNullable(booking.getStatus())
@@ -32,8 +32,8 @@ public class BookingMapper {
 
         Booking booking = new Booking();
         booking.setId(dto.getId());
-        booking.setStartTime(dto.getStartTime());
-        booking.setEndTime(dto.getEndTime());
+        booking.setStart(dto.getStart());
+        booking.setEnd(dto.getEnd());
         booking.setItem(item);
         booking.setBooker(booker);
         if (dto.getStatus() != null) {

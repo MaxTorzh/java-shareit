@@ -43,7 +43,7 @@ public class InMemoryItemRepository implements ItemRepository {
     public List<Item> search(String text) {
         String searchText = text.toLowerCase();
         return items.values().stream()
-                .filter(item -> item.getIsAvailable() &&
+                .filter(item -> item.getAvailable() &&
                         (item.getName().toLowerCase().contains(searchText) ||
                         item.getDescription().toLowerCase().contains(searchText)))
                 .collect(Collectors.toList());

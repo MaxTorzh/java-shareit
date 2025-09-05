@@ -14,10 +14,10 @@ public class Booking {
     private Long id;
     @NotNull(message = "Дата начала бронирования обязательна")
     @Future(message = "Дата начала должна быть в будущем")
-    private LocalDateTime startTime;
+    private LocalDateTime start;
     @NotNull(message = "Дата окончания бронирования обязательна")
     @Future(message = "Дата окончания должна быть в будущем")
-    private LocalDateTime endTime;
+    private LocalDateTime end;
     @NotNull(message = "Предмет обязателен")
     private Item item;
     @NotNull(message = "Заказчик обязателен")

@@ -13,7 +13,7 @@ public class Item {
     @NotBlank(message = "Описание предмета не может быть пустым")
     private String description;
     @NotNull(message = "Статус доступности обязателен")
-    private Boolean isAvailable;
+    private Boolean available;
     @NotNull(message = "Владелец обязателен")
     private User owner;
     private Long requestId;

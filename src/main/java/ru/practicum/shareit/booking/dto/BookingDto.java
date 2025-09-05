@@ -16,10 +16,10 @@ public class BookingDto {
     private Long id;
     @NotNull(message = "Дата начала бронирования обязательна")
     @FutureOrPresent(message = "Дата начала должна быть в будущем или настоящем")
-    private LocalDateTime startTime;
+    private LocalDateTime start;
     @NotNull(message = "Дата окончания бронирования обязательна")
     @Future(message = "Дата окончания должна быть в будущем")
-    private LocalDateTime endTime;
+    private LocalDateTime end;
     @NotNull(message = "ID предмета обязателен")
     private Long itemId;
     private String status;

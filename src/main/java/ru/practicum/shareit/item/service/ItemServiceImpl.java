@@ -60,8 +60,8 @@ public class ItemServiceImpl implements ItemService {
         if (newItem.getDescription() != null) {
             existingItem.setDescription(newItem.getDescription());
         }
-        if (newItem.getIsAvailable() != null) {
-            existingItem.setIsAvailable(newItem.getIsAvailable());
+        if (newItem.getAvailable() != null) {
+            existingItem.setAvailable(newItem.getAvailable());
         }
     }
 
@@ -77,7 +77,7 @@ public class ItemServiceImpl implements ItemService {
         if (item.getDescription() == null || item.getDescription().isBlank()) {
             throw new ValidationException("Описание обязательно");
         }
-        if (item.getIsAvailable() == null) {
+        if (item.getAvailable() == null) {
             throw new ValidationException("Статус доступности обязателен");
         }
     }

@@ -71,16 +71,16 @@ public class BookingValidator {
     }
 
     public void validateItemAvailability(Item item) {
-        if (!item.getIsAvailable()) {
+        if (!item.getAvailable()) {
             throw new AccessDeniedException("Вещь недоступна для бронирования");
         }
     }
 
     public void validateBookingDates(Booking booking) {
-        if (booking.getStartTime().isAfter(booking.getEndTime())) {
+        if (booking.getStart().isAfter(booking.getEnd())) {
             throw new ValidationException("Дата начала пользования должна быть до даты окончания");
         }
-        if (booking.getStartTime().isBefore(LocalDateTime.now())) {
+        if (booking.getStart().isBefore(LocalDateTime.now())) {
             throw new ValidationException("Дата начала должна быть в будущем");
         }
     }
@@ -97,7 +97,7 @@ public class BookingValidator {
     }
 
     public boolean isOverlapping(Booking newBooking, Booking existingBooking) {
-        return newBooking.getStartTime().isBefore(existingBooking.getEndTime()) &&
-                newBooking.getEndTime().isAfter(existingBooking.getStartTime());
+        return newBooking.getStart().isBefore(existingBooking.getEnd()) &&
+                newBooking.getEnd().isAfter(existingBooking.getStart());
     }
 }
