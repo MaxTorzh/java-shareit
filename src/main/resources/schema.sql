@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS comments (
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_items_owner_id ON items(owner_id);
 CREATE INDEX IF NOT EXISTS idx_items_request_id ON items(request_id);
-CREATE INDEX IF NOT EXISTS idx_requests_requestor_id ON requests(requestor_id);
+CREATE INDEX IF NOT EXISTS idx_requests_requester_id ON requests(requester_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_item_id ON bookings(item_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_booker_id ON bookings(booker_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
