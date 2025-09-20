@@ -2,29 +2,34 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.user.validator.UserValidator;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserValidator userValidator;
 
     @Override
+    @Transactional
     public User createUser(User user) {
-        checkUniqueEmail(user.getEmail());
-        return userRepository.save(user);
+        userValidator.checkUniqueEmail(user.getEmail());
+        return userValidator.saveUser(user, "создании пользователя");
     }
 
     @Override
     public User updateUser(Long userId, User user) {
         User existingUser = getUserById(userId);
-        updateUserFields(existingUser, user);
-        return userRepository.save(existingUser);
+        userValidator.updateUserFields(existingUser, user);
+        return userValidator.saveUser(existingUser, "обновлении пользователя");
     }
 
     @Override
@@ -40,30 +45,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(Long userId) {
-        validateExistingUser(userId);
+        userValidator.validateExistingUser(userId);
         userRepository.deleteById(userId);
-    }
-
-    private void updateUserFields(User existingUser, User newUser) {
-        if (newUser.getName() != null) {
-            existingUser.setName(newUser.getName());
-        }
-        if (newUser.getEmail() != null &&
-        !newUser.getEmail().equals(existingUser.getEmail())) {
-            checkUniqueEmail(newUser.getEmail());
-            existingUser.setEmail(newUser.getEmail());
-        }
-    }
-
-    private void validateExistingUser(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("Пользователь с ID: " + userId + " не найден");
-        }
-    }
-
-    private void checkUniqueEmail(String email) {
-        if (userRepository.existsByEmail(email)) {
-            throw new ConflictException("Такой email уже существует: " + email);
-        }
     }
 }

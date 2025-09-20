@@ -34,7 +34,7 @@ public class Booking {
     @NotNull(message = "Предмет обязателен")
     private Item item;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booker_id", nullable = false)
     @NotNull(message = "Заказчик обязателен")
     private User booker;
