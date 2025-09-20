@@ -1,4 +1,4 @@
-package ru.practicum.shareit.comment;
+package ru.practicum.shareit.comment.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

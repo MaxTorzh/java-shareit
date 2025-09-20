@@ -3,7 +3,6 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -15,37 +14,37 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
-    private final UserValidator userValidator;
+    private final UserRepository repository;
+    private final UserValidator validator;
 
     @Override
     @Transactional
     public User createUser(User user) {
-        userValidator.checkUniqueEmail(user.getEmail());
-        return userValidator.saveUser(user, "создании пользователя");
+        validator.checkUniqueEmail(user.getEmail());
+        return validator.saveUser(user, "создании пользователя");
     }
 
     @Override
     public User updateUser(Long userId, User user) {
         User existingUser = getUserById(userId);
-        userValidator.updateUserFields(existingUser, user);
-        return userValidator.saveUser(existingUser, "обновлении пользователя");
+        validator.updateUserFields(existingUser, user);
+        return validator.saveUser(existingUser, "обновлении пользователя");
     }
 
     @Override
     public User getUserById(Long userId) {
-        return userRepository.findById(userId)
+        return repository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с ID: " + userId + " не найден"));
     }
 
     @Override
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return repository.findAll();
     }
 
     @Override
     public void deleteUser(Long userId) {
-        userValidator.validateExistingUser(userId);
-        userRepository.deleteById(userId);
+        validator.validateExistingUser(userId);
+        repository.deleteById(userId);
     }
 }

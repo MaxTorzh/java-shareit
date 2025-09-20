@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
-    private final UserService userService;
+    private final UserService service;
 
     /**
      * Создание нового пользователя.
@@ -28,7 +28,7 @@ public class UserController {
     public UserDto createUser(@Valid @RequestBody UserDto userDto) {
         log.info("Получен запрос на создание нового пользователя");
         return UserMapper.toDto(
-                userService.createUser(UserMapper.toUser(userDto))
+                service.createUser(UserMapper.toUser(userDto))
         );
     }
 
@@ -45,7 +45,7 @@ public class UserController {
                               @RequestBody UserDto userDto) {
         log.info("Получен запрос на обновление данных пользователя с ID: {}", userId);
         return UserMapper.toDto(
-                userService.updateUser(userId, UserMapper.toUser(userDto))
+                service.updateUser(userId, UserMapper.toUser(userDto))
         );
     }
 
@@ -58,7 +58,7 @@ public class UserController {
     @GetMapping("/{userId}")
     public UserDto getUserById(@PathVariable Long userId) {
         log.info("Получен запрос на получение данных пользователя с ID: {}", userId);
-        return UserMapper.toDto(userService.getUserById(userId));
+        return UserMapper.toDto(service.getUserById(userId));
     }
 
     /**
@@ -69,7 +69,7 @@ public class UserController {
     @GetMapping
     public List<UserDto> getAllUsers() {
         log.info("Получен запрос на получение списка всех пользователей");;
-        return userService.getAllUsers().stream()
+        return service.getAllUsers().stream()
                 .map(UserMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -82,6 +82,6 @@ public class UserController {
     @DeleteMapping("/{userId}")
     public void deleteUser(@PathVariable Long userId) {
         log.info("Получен запрос на удаление пользователя с ID: {}", userId);
-        userService.deleteUser(userId);
+        service.deleteUser(userId);
     }
 }
