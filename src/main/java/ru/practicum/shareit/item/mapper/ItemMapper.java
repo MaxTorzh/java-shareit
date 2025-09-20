@@ -19,7 +19,8 @@ public class ItemMapper {
         dto.setAvailable(item.getAvailable());
         Optional.ofNullable(item.getOwner())
                 .ifPresent(user -> dto.setOwnerId(user.getId()));
-        dto.setRequestId(item.getRequest().getId());
+        Optional.ofNullable(item.getRequest())
+                .ifPresent(request -> dto.setRequestId(request.getId()));
         return dto;
     }
 
