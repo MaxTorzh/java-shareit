@@ -33,7 +33,7 @@ public class ItemServiceImpl implements ItemService {
     public Item updateItem(Long itemId, Item item) {
         Item existingItem = getItemById(itemId);
         validator.updateItemFields(existingItem, item);
-        return validator.saveItem(item, "обновлении вещи");
+        return validator.saveItem(existingItem, "обновлении вещи");
     }
 
     @Override
