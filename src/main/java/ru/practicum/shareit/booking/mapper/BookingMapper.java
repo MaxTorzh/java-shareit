@@ -1,68 +1,55 @@
 package ru.practicum.shareit.booking.mapper;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingListDto;
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.status.BookingStatus;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.Optional;
+@Mapper(componentModel = "spring")
+public interface BookingMapper {
 
-public class BookingMapper {
-    public static BookingDto toDto(Booking booking) {
-        if (booking == null) {
-            return null;
-        }
+    @Mapping(source = "status", target = "status", qualifiedByName = "bookingStatusToString")
+    @Mapping(source = "booker.id", target = "booker.id")
+    @Mapping(source = "booker.name", target = "booker.name")
+    @Mapping(source = "booker.email", target = "booker.email")
+    @Mapping(source = "item.id", target = "item.id")
+    @Mapping(source = "item.name", target = "item.name")
+    @Mapping(source = "item.description", target = "item.description")
+    @Mapping(source = "item.available", target = "item.available")
+    @Mapping(source = "item.request.id", target = "item.requestId")
+    BookingDto toDto(Booking booking);
 
-        BookingDto dto = new BookingDto();
-        dto.setId(booking.getId());
-        dto.setStart(booking.getStart());
-        dto.setEnd(booking.getEnd());
-        Optional.ofNullable(booking.getStatus())
-                .ifPresent(status -> dto.setStatus(status.name()));
-        if (booking.getBooker() != null) {
-            UserDto bookerDto = new UserDto();
-            bookerDto.setId(booking.getBooker().getId());
-            bookerDto.setName(booking.getBooker().getName());
-            bookerDto.setEmail(booking.getBooker().getEmail());
-            dto.setBooker(bookerDto);
-        }
-        if (booking.getItem() != null) {
-            ItemDto itemDto = new ItemDto();
-            itemDto.setId(booking.getItem().getId());
-            itemDto.setName(booking.getItem().getName());
-            itemDto.setDescription(booking.getItem().getDescription());
-            itemDto.setAvailable(booking.getItem().getAvailable());
-            if (booking.getItem().getRequest() != null) {
-                itemDto.setRequestId(booking.getItem().getRequest().getId());
-            }
-            dto.setItem(itemDto);
-        }
-        return dto;
+    @Mapping(source = "status", target = "status", qualifiedByName = "bookingStatusToString")
+    @Mapping(source = "item.id", target = "itemId")
+    @Mapping(source = "item.name", target = "itemName")
+    @Mapping(source = "booker.id", target = "bookerId")
+    @Mapping(source = "booker.name", target = "bookerName")
+    BookingListDto toListDto(Booking booking);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", constant = "WAITING")
+    @Mapping(target = "item", source = "item")
+    @Mapping(target = "booker", source = "booker")
+    Booking toBooking(BookingRequestDto bookingRequestDto, Item item, User booker);
+
+    @Named("bookingStatusToString")
+    default String bookingStatusToString(BookingStatus status) {
+        return status != null ? status.name() : null;
     }
 
-    public static Booking toBooking(BookingDto dto, Item item, User booker) {
-        if (dto == null) {
-            return null;
+    @Named("stringToBookingStatus")
+    default BookingStatus stringToBookingStatus(String status) {
+        if (status == null) return BookingStatus.WAITING;
+        try {
+            return BookingStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            return BookingStatus.WAITING;
         }
-
-        Booking booking = new Booking();
-        booking.setId(dto.getId());
-        booking.setStart(dto.getStart());
-        booking.setEnd(dto.getEnd());
-        booking.setItem(item);
-        booking.setBooker(booker);
-        if (dto.getStatus() != null) {
-            try {
-                booking.setStatus(BookingStatus.valueOf(dto.getStatus()));
-            } catch (IllegalArgumentException e) {
-                booking.setStatus(BookingStatus.WAITING);
-            }
-        } else {
-            booking.setStatus(BookingStatus.WAITING);
-        }
-        return booking;
     }
 }

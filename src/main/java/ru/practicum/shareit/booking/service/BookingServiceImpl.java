@@ -1,7 +1,10 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.status.BookingStatus;
@@ -12,11 +15,13 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final BookingValidator validator;
 
     @Override
+    @Transactional
     public Booking createBooking(Booking booking) {
         validator.validateBookingCreation(booking);
         booking.setStatus(BookingStatus.WAITING);
@@ -24,6 +29,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public Booking approveBooking(Long bookingId, Boolean approved, Long ownerId) {
         Booking booking = getBookingById(bookingId);
 
@@ -48,15 +54,15 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getUserBookings(Long userId) {
+    public Page<Booking> getUserBookings(Long userId, Pageable pageable) {
         validator.validateUserExists(userId);
-        return bookingRepository.findByBookerId(userId);
+        return bookingRepository.findByBookerId(userId, pageable);
     }
 
     @Override
-    public List<Booking> getOwnerBookings(Long ownerId) {
+    public Page<Booking> getOwnerBookings(Long ownerId, Pageable pageable) {
         validator.validateUserExists(ownerId);
-        return bookingRepository.findByItemOwnerId(ownerId);
+        return bookingRepository.findByItemOwnerId(ownerId, pageable);
     }
 
     @Override
