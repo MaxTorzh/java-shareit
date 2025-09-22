@@ -10,6 +10,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingsDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.item.service.ItemWithCommentsService;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class ItemController {
     private final ItemService itemService;
     private final UserService userService;
     private final CommentService commentService;
+    private final ItemWithCommentsService itemWithCommentsService;
 
     /**
      * Создание нового предмета.
@@ -57,7 +59,7 @@ public class ItemController {
     public ItemWithBookingsDto getItemWithBookings(@PathVariable Long itemId,
                                                    @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Получен запрос на получение данных предмета с ID: {}", itemId);
-        return itemService.getItemWithBookings(itemId, userId);
+        return itemWithCommentsService.getItemWithBookingsAndComments(itemId, userId);
     }
 
     /**
@@ -67,7 +69,7 @@ public class ItemController {
     @GetMapping
     public List<ItemWithBookingsDto> getUserItemsWithBookings(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
         log.info("Получен запрос на получение списка предметов пользователя с ID: {}", ownerId);
-        return itemService.getUserItemsWithBookings(ownerId);
+        return itemWithCommentsService.getUserItemsWithBookingsAndComments(ownerId);
     }
 
     /**
@@ -91,10 +93,13 @@ public class ItemController {
         itemService.deleteItem(itemId);
     }
 
+    /**
+     * Добавление комментария.
+     */
     @PostMapping("/{itemId}/comment")
     public CommentDto addComment(@PathVariable Long itemId,
-                                 @Valid @RequestBody CommentDto commentRequestDto,
+                                 @Valid @RequestBody CommentDto commentDto,
                                  @RequestHeader("X-Sharer-User-Id") Long authorId) {
-        return commentService.createComment(itemId, commentRequestDto, authorId);
+        return commentService.createComment(itemId, commentDto, authorId);
     }
 }

@@ -15,7 +15,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class CommentValidator {
-
     private final BookingRepository bookingRepository;
 
     public void validateCommentCreation(Item item, User author) {
@@ -29,7 +28,6 @@ public class CommentValidator {
                 item.getId(),
                 BookingStatus.APPROVED
         );
-
         if (userBookings.isEmpty()) {
             throw new ValidationException("Пользователь не брал эту вещь в аренду");
         }

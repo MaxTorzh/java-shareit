@@ -29,12 +29,9 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto createComment(Long itemId, CommentDto dto, Long authorId) {
         Item item = itemService.getItemById(itemId);
         User author = userService.getUserById(authorId);
-
         commentValidator.validateCommentCreation(item, author);
-
         Comment comment = CommentMapper.toComment(dto, item, author);
         Comment savedComment = commentRepository.save(comment);
-
         return CommentMapper.toDto(savedComment);
     }
 

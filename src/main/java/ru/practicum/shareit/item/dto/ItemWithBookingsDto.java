@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.dto.BookingDateDto;
 import ru.practicum.shareit.comment.dto.CommentDto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -20,5 +21,5 @@ public class ItemWithBookingsDto {
     private Long requestId;
     private BookingDateDto lastBooking;
     private BookingDateDto nextBooking;
-    private List<CommentDto> comments;
+    private List<CommentDto> comments = new ArrayList<>();
 }

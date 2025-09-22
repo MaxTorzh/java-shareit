@@ -46,15 +46,6 @@ public class CommentMapper {
         return comment;
     }
 
-    public static Comment toCommentFromRequest(String text, Item item, User author) {
-        Comment comment = new Comment();
-        comment.setText(text);
-        comment.setItem(item);
-        comment.setAuthor(author);
-        comment.setCreated(LocalDateTime.now());
-        return comment;
-    }
-
     public static List<CommentDto> toDtoList(List<Comment> comments) {
         if (comments == null) {
             return Collections.emptyList();
