@@ -30,7 +30,7 @@ public class Comment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     @NotNull(message = "Автор обязателен")
-    private User user;
+    private User author;
 
     @Column(name = "created", nullable = false)
     @NotNull(message = "Дата создания обязательна")

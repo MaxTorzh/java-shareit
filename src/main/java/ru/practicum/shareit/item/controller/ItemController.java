@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingsDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.service.UserService;
@@ -22,10 +23,6 @@ public class ItemController {
 
     /**
      * Создание нового предмета.
-     *
-     * @param itemDto данные нового предмета
-     * @param ownerId ID владельца предмета
-     * @return созданный предмет
      */
     @PostMapping
     public ItemDto createItem(@Valid @RequestBody ItemDto itemDto,
@@ -38,11 +35,6 @@ public class ItemController {
 
     /**
      * Обновление данных существующего предмета.
-     *
-     * @param itemId ID предмета
-     * @param itemDto новые данные предмета
-     * @param ownerId ID владельца предмета
-     * @return обновленные данные предмета
      */
     @PatchMapping("/{itemId}")
     public ItemDto updateItem(@Valid @PathVariable Long itemId,
@@ -55,37 +47,28 @@ public class ItemController {
     }
 
     /**
-     * Получение данных предмета по ID.
-     *
-     * @param itemId ID предмета
-     * @return данные предмета
+     * Получение данных предмета с бронированиями.
+     * Заменяет старый эндпоинт getItemById.
      */
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@PathVariable Long itemId) {
+    public ItemWithBookingsDto getItemWithBookings(@PathVariable Long itemId,
+                                                   @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Получен запрос на получение данных предмета с ID: {}", itemId);
-        return ItemMapper.toDto(itemService.getItemById(itemId));
+        return itemService.getItemWithBookings(itemId, userId);
     }
 
     /**
-     * Получение списка предметов пользователя.
-     *
-     * @param ownerId ID владельца предметов
-     * @return список предметов пользователя
+     * Получение списка предметов пользователя с бронированиями.
+     * Заменяет старый эндпоинт getUserItems.
      */
     @GetMapping
-    public List<ItemDto> getUserItems(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
+    public List<ItemWithBookingsDto> getUserItemsWithBookings(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
         log.info("Получен запрос на получение списка предметов пользователя с ID: {}", ownerId);
-        return itemService.getUserItems(ownerId).stream()
-                .map(ItemMapper::toDto)
-                .collect(Collectors.toList());
+        return itemService.getUserItemsWithBookings(ownerId);
     }
 
     /**
      * Поиск предметов по тексту.
-     *
-     * @param text текст для поиска
-     * @param userId ID пользователя (опционально)
-     * @return список найденных предметов
      */
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestParam String text,
@@ -97,9 +80,7 @@ public class ItemController {
     }
 
     /**
-     * Удаление пользователя по ID.
-     *
-     * @param itemId идентификатор пользователя
+     * Удаление предмета по ID.
      */
     @DeleteMapping("/{itemId}")
     public void deleteItem(@PathVariable Long itemId) {
