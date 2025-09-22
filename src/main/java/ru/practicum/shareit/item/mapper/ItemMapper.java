@@ -1,40 +1,29 @@
 package ru.practicum.shareit.item.mapper;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemRequestDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.Optional;
+@Mapper(componentModel = "spring")
+public interface ItemMapper {
 
-public class ItemMapper {
-    public static ItemDto toDto(Item item) {
-        if (item == null) {
-            return null;
-        }
+    @Mapping(source = "item.id", target = "id")
+    @Mapping(source = "item.name", target = "name")
+    @Mapping(source = "item.description", target = "description")
+    @Mapping(source = "item.available", target = "available")
+    @Mapping(source = "item.owner.id", target = "ownerId")
+    @Mapping(source = "item.request.id", target = "requestId")
+    ItemDto toDto(Item item);
 
-        ItemDto dto = new ItemDto();
-        dto.setId(item.getId());
-        dto.setName(item.getName());
-        dto.setDescription(item.getDescription());
-        dto.setAvailable(item.getAvailable());
-        Optional.ofNullable(item.getOwner())
-                .ifPresent(user -> dto.setOwnerId(user.getId()));
-        Optional.ofNullable(item.getRequest())
-                .ifPresent(request -> dto.setRequestId(request.getId()));
-        return dto;
-    }
-
-    public static Item toItem(ItemDto dto, User owner) {
-        if (dto == null) {
-            return null;
-        }
-
-        Item item = new Item();
-        item.setId(dto.getId());
-        item.setName(dto.getName());
-        item.setDescription(dto.getDescription());
-        item.setAvailable(dto.getAvailable());
-        item.setOwner(owner);
-        return item;
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(source = "owner", target = "owner")
+    @Mapping(source = "request", target = "request")
+    @Mapping(source = "itemRequestDto.name", target = "name")
+    @Mapping(source = "itemRequestDto.description", target = "description")
+    @Mapping(source = "itemRequestDto.available", target = "available")
+    Item toItem(ItemRequestDto itemRequestDto, User owner, ItemRequest request);
 }
