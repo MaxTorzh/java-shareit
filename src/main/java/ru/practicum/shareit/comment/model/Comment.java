@@ -34,5 +34,5 @@ public class Comment {
 
     @Column(name = "created", nullable = false)
     @NotNull(message = "Дата создания обязательна")
-    private LocalDateTime createdTime;
+    private LocalDateTime created;
 }

@@ -17,7 +17,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class BookingValidator {
-    private final BookingRepository bookingRepository;
+//    private final BookingRepository bookingRepository;
     private final UserService userService;
     private final ItemService itemService;
 
@@ -26,7 +26,7 @@ public class BookingValidator {
         validateItemExists(booking.getItem().getId());
         validateItemAvailability(booking.getItem());
         validateBookingDates(booking);
-        validateNoOverlappingBookings(booking);
+//        validateNoOverlappingBookings(booking);
     }
 
     public void validateBookingAccess(Booking booking, Long userId) {
@@ -85,16 +85,16 @@ public class BookingValidator {
         }
     }
 
-    public void validateNoOverlappingBookings(Booking booking) {
-        List<Booking> overlappingBookings = bookingRepository.findByItemIdAndStatus(
-                booking.getItem().getId(), BookingStatus.APPROVED);
-
-        for (Booking existingBooking : overlappingBookings) {
-            if (isOverlapping(booking, existingBooking)) {
-                throw new ValidationException("Вещь уже забронирована на указанные даты");
-            }
-        }
-    }
+//    public void validateNoOverlappingBookings(Booking booking) {
+//        List<Booking> overlappingBookings = bookingRepository.findByItemIdAndStatus(
+//                booking.getItem().getId(), BookingStatus.APPROVED);
+//
+//        for (Booking existingBooking : overlappingBookings) {
+//            if (isOverlapping(booking, existingBooking)) {
+//                throw new ValidationException("Вещь уже забронирована на указанные даты");
+//            }
+//        }
+//    }
 
     public boolean isOverlapping(Booking newBooking, Booking existingBooking) {
         return newBooking.getStart().isBefore(existingBooking.getEnd()) &&

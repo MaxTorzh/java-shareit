@@ -24,11 +24,6 @@ public class BookingInfoService {
                 .map(this::convertToBookingDateDto);
     }
 
-    public boolean hasUserBookedItem(Long userId, Long itemId) {
-        return bookingRepository.existsByItemIdAndBookerIdAndEndBefore(
-                itemId, userId, LocalDateTime.now());
-    }
-
     private BookingDateDto convertToBookingDateDto(Booking booking) {
         return new BookingDateDto(
                 booking.getId(),

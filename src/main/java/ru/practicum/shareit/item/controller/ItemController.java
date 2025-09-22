@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.comment.service.CommentService;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingsDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class ItemController {
     private final ItemService itemService;
     private final UserService userService;
+    private final CommentService commentService;
 
     /**
      * Создание нового предмета.
@@ -86,5 +89,12 @@ public class ItemController {
     public void deleteItem(@PathVariable Long itemId) {
         log.info("Получен запрос на удаление вещи с ID: {}", itemId);
         itemService.deleteItem(itemId);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@PathVariable Long itemId,
+                                 @Valid @RequestBody CommentDto commentRequestDto,
+                                 @RequestHeader("X-Sharer-User-Id") Long authorId) {
+        return commentService.createComment(itemId, commentRequestDto, authorId);
     }
 }
