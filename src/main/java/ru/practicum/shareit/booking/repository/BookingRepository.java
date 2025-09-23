@@ -18,23 +18,29 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Page<Booking> findByItemOwnerId(Long ownerId, Pageable pageable);
 
-    List<Booking> findByItemIdAndStatus(Long itemId, BookingStatus status);
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.item.id = :itemId " +
+            "AND b.status = :status")
+    List<Booking> findByItemIdAndStatus(@Param("itemId") Long itemId,
+                                        @Param("status") BookingStatus status);
 
     @Query("SELECT b FROM Booking b " +
             "WHERE b.item.id = :itemId " +
-            "AND b.status = 'APPROVED' " +
+            "AND b.status = :status " +
             "AND b.end < :currentTime " +
-            "ORDER BY b.end DESC")
+            "ORDER BY b.end DESC ")
     Optional<Booking> findLastBooking(@Param("itemId") Long itemId,
-                                      @Param("currentTime") LocalDateTime currentTime);
+                                      @Param("currentTime") LocalDateTime currentTime,
+                                      @Param("status") BookingStatus status);
 
     @Query("SELECT b FROM Booking b " +
             "WHERE b.item.id = :itemId " +
-            "AND b.status = 'APPROVED' " +
             "AND b.start > :currentTime " +
+            "AND b.status = :status " +
             "ORDER BY b.start ASC")
     Optional<Booking> findNextBooking(@Param("itemId") Long itemId,
-                                      @Param("currentTime") LocalDateTime currentTime);
+                                      @Param("currentTime") LocalDateTime currentTime,
+                                      @Param("status") BookingStatus status);
 
     @Query("SELECT b FROM Booking b WHERE b.booker.id = :bookerId AND b.item.id = :itemId AND b.status = :status")
     List<Booking> findByBookerIdAndItemIdAndStatus(@Param("bookerId") Long bookerId,

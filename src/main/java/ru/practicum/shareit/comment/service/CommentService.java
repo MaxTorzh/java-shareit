@@ -3,14 +3,11 @@ package ru.practicum.shareit.comment.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.comment.dto.CommentDto;
-
-import java.util.List;
+import ru.practicum.shareit.comment.model.Comment;
 
 public interface CommentService {
 
-    CommentDto createComment(Long itemId, CommentDto dto, Long authorId);
+    Comment createComment(Long itemId, Comment comment, Long authorId);
 
     Page<CommentDto> getCommentsByItemId(Long itemId, Pageable pageable);
-
-    Page<CommentDto> getCommentsByItemIds(List<Long> itemIds, Pageable pageable);
 }

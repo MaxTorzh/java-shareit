@@ -1,10 +1,12 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -24,7 +26,7 @@ public class ItemServiceImpl implements ItemService {
     public Item createItem(Item item) {
         service.getUserById(item.getOwner().getId());
         validator.validateItemCreation(item);
-        return validator.saveItem(item, "создании вещи");
+        return saveItem(item, "создании вещи");
     }
 
     @Override
@@ -32,7 +34,7 @@ public class ItemServiceImpl implements ItemService {
     public Item updateItem(Long itemId, Item item) {
         Item existingItem = getItemById(itemId);
         validator.updateItemFields(existingItem, item);
-        return validator.saveItem(existingItem, "обновлении вещи");
+        return saveItem(existingItem, "обновлении вещи");
     }
 
     @Override
@@ -63,5 +65,13 @@ public class ItemServiceImpl implements ItemService {
     public void deleteItem(Long itemId) {
         getItemById(itemId);
         repository.deleteById(itemId);
+    }
+
+    private Item saveItem(Item item, String operation) {
+        try {
+            return repository.save(item);
+        } catch (DataIntegrityViolationException e) {
+            throw new ConflictException("Ошибка при " + operation + ": " + item.getName());
+        }
     }
 }

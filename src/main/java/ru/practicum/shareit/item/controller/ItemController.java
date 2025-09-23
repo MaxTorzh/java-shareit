@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.comment.mapper.CommentMapper;
 import ru.practicum.shareit.comment.service.CommentService;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemRequestDto;
@@ -30,6 +31,7 @@ public class ItemController {
     private final CommentService commentService;
     private final ItemWithCommentsService itemWithCommentsService;
     private final ItemMapper itemMapper;
+    private final CommentMapper commentMapper;
     private final ItemRequestService itemRequestService;
 
     /**
@@ -134,10 +136,19 @@ public class ItemController {
      */
     @PostMapping("/{itemId}/comment")
     public CommentDto createComment(@PathVariable Long itemId,
-                                 @Valid @RequestBody CommentDto commentDto,
-                                 @RequestHeader("X-Sharer-User-Id") Long authorId) {
+                                    @Valid @RequestBody CommentDto commentDto,
+                                    @RequestHeader("X-Sharer-User-Id") Long authorId) {
         log.info("Получен запрос на создание комментария для предмета с ID: {} от пользователя с ID: {}",
                 itemId, authorId);
-        return commentService.createComment(itemId, commentDto, authorId);
+
+        return commentMapper.toDto(
+                    commentService.createComment(
+                            itemId,
+                            commentMapper.toEntity(commentDto,
+                                    itemService.getItemById(itemId),
+                                    userService.getUserById(authorId)),
+                                    authorId
+                )
+        );
     }
 }
