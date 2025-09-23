@@ -13,11 +13,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BookingRequestDto {
     @NotNull
-    @Future
+    @Future(message = "Дата начала бронирования должна быть в будущем")
     private LocalDateTime start;
 
     @NotNull
-    @Future
+    @Future(message = "Дата окончания бронирования должна быть в будущем")
     private LocalDateTime end;
 
     @NotNull

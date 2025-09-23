@@ -133,9 +133,11 @@ public class ItemController {
      * Добавление комментария.
      */
     @PostMapping("/{itemId}/comment")
-    public CommentDto addComment(@PathVariable Long itemId,
+    public CommentDto createComment(@PathVariable Long itemId,
                                  @Valid @RequestBody CommentDto commentDto,
                                  @RequestHeader("X-Sharer-User-Id") Long authorId) {
+        log.info("Получен запрос на создание комментария для предмета с ID: {} от пользователя с ID: {}",
+                itemId, authorId);
         return commentService.createComment(itemId, commentDto, authorId);
     }
 }
