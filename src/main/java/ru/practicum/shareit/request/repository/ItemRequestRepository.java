@@ -1,19 +1,16 @@
 package ru.practicum.shareit.request.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.request.model.ItemRequest;
 
-import java.util.List;
-import java.util.Optional;
+public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> {
 
-public interface ItemRequestRepository {
+    Page<ItemRequest> findByRequesterId(Long requesterId, Pageable pageable);
 
-    ItemRequest save(ItemRequest itemRequest);
-
-    Optional<ItemRequest> findById(Long itemRequestId);
-
-    List<ItemRequest> findByRequesterId(Long requesterId);
-
-    List<ItemRequest> findAll();
-
-    List<ItemRequest> findAllExceptRequester(Long requesterId);
+    @Query("SELECT ir FROM ItemRequest ir WHERE ir.requester.id <> :requesterId")
+    Page<ItemRequest> findAllExceptRequester(@Param("requesterId") Long requesterId, Pageable pageable);
 }
