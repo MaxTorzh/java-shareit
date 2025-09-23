@@ -24,7 +24,7 @@ public class Booking {
     @Future(message = "Дата начала должна быть в будущем")
     private LocalDateTime start;
 
-    @Column(name = "end_date")
+    @Column(name = "end_date", nullable = false)
     @NotNull(message = "Дата окончания бронирования обязательна")
     @Future(message = "Дата окончания должна быть в будущем")
     private LocalDateTime end;

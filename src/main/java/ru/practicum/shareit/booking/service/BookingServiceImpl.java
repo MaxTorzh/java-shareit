@@ -11,8 +11,6 @@ import ru.practicum.shareit.booking.status.BookingStatus;
 import ru.practicum.shareit.booking.validator.BookingValidator;
 import ru.practicum.shareit.exception.NotFoundException;
 
-import java.util.List;
-
 @Service
 @AllArgsConstructor
 @Transactional(readOnly = true)

@@ -28,12 +28,10 @@ public class ItemBookingInfoService {
         if (item.getRequest() != null) {
             dto.setRequestId(item.getRequest().getId());
         }
-
         if (item.getOwner() != null && item.getOwner().getId().equals(userId)) {
             bookingInfoService.getLastBooking(item.getId()).ifPresent(dto::setLastBooking);
             bookingInfoService.getNextBooking(item.getId()).ifPresent(dto::setNextBooking);
         }
-
         return dto;
     }
 }

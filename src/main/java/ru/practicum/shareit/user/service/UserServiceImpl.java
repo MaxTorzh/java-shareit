@@ -10,8 +10,6 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.validator.UserValidator;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)

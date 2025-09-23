@@ -35,10 +35,8 @@ public class CommentServiceImpl implements CommentService {
         Item item = itemService.getItemById(itemId);
         User author = userService.getUserById(authorId);
         commentValidator.validateCommentCreation(item, author);
-
         Comment comment = commentMapper.toEntity(dto, item, author);
         comment.setCreated(LocalDateTime.now());
-
         Comment savedComment = commentRepository.save(comment);
         return commentMapper.toDto(savedComment);
     }

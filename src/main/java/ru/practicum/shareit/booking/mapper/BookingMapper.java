@@ -42,14 +42,4 @@ public interface BookingMapper {
     default String bookingStatusToString(BookingStatus status) {
         return status != null ? status.name() : null;
     }
-
-    @Named("stringToBookingStatus")
-    default BookingStatus stringToBookingStatus(String status) {
-        if (status == null) return BookingStatus.WAITING;
-        try {
-            return BookingStatus.valueOf(status);
-        } catch (IllegalArgumentException e) {
-            return BookingStatus.WAITING;
-        }
-    }
 }

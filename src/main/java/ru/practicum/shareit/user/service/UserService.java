@@ -4,8 +4,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.List;
-
 public interface UserService {
 
     User createUser(User user);
