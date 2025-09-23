@@ -16,7 +16,7 @@ public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Id;
+    private Long id;
 
     @Column(name = "text", nullable = false)
     @NotBlank(message = "Текст комментария не должен быть пустым")
