@@ -14,17 +14,11 @@ import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    List<Booking> findByBookerId(Long bookerId);
-
     Page<Booking> findByBookerId(Long bookerId, Pageable pageable);
-
-    List<Booking> findByItemOwnerId(Long ownerId);
 
     Page<Booking> findByItemOwnerId(Long ownerId, Pageable pageable);
 
     List<Booking> findByItemIdAndStatus(Long itemId, BookingStatus status);
-
-    List<Booking> findByBookerIdAndItemIdAndStatus(Long bookerId, Long itemId, BookingStatus status);
 
     @Query("SELECT b FROM Booking b " +
             "WHERE b.item.id = :itemId " +
@@ -42,12 +36,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findNextBooking(@Param("itemId") Long itemId,
                                       @Param("currentTime") LocalDateTime currentTime);
 
-    @Query("SELECT b FROM Booking b WHERE b.booker.id = :userId " +
-            "AND b.item.id = :itemId AND b.status = 'APPROVED' " +
-            "AND b.end < :currentTime")
-    List<Booking> findFinishedBookingsByUserAndItem(
-            @Param("userId") Long userId,
-            @Param("itemId") Long itemId,
-            @Param("currentTime") LocalDateTime currentTime
-    );
+    @Query("SELECT b FROM Booking b WHERE b.booker.id = :bookerId AND b.item.id = :itemId AND b.status = :status")
+    List<Booking> findByBookerIdAndItemIdAndStatus(@Param("bookerId") Long bookerId,
+                                                   @Param("itemId") Long itemId,
+                                                   @Param("status") BookingStatus status);
+
+    @Query("SELECT b FROM Booking b WHERE b.booker.id = :bookerId AND b.item.id = :itemId " +
+            "AND b.status = :status AND b.end < :currentTime")
+    List<Booking> findFinishedBookingsByUserAndItem(@Param("bookerId") Long bookerId,
+                                                    @Param("itemId") Long itemId,
+                                                    @Param("status") BookingStatus status,
+                                                    @Param("currentTime") LocalDateTime currentTime);
 }

@@ -37,11 +37,13 @@ public class CommentValidator {
         List<Booking> finishedBookings = bookingRepository.findFinishedBookingsByUserAndItem(
                 author.getId(),
                 item.getId(),
+                BookingStatus.APPROVED,
                 LocalDateTime.now()
         );
-
         if (finishedBookings.isEmpty()) {
             throw new ValidationException("Можно оставлять комментарий только после окончания аренды");
         }
     }
 }
+
+

@@ -26,10 +26,6 @@ public class ItemRequestController {
 
     /**
      * Создание нового запроса на предмет.
-     *
-     * @param itemRequestDto данные нового запроса
-     * @param requesterId ID пользователя, создающего запрос
-     * @return созданный запрос
      */
     @PostMapping
     public ItemRequestDto createItemRequest(@Valid @RequestBody ItemRequestRequestDto requestDto,

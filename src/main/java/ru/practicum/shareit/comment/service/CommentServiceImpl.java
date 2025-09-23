@@ -1,6 +1,9 @@
 package ru.practicum.shareit.comment.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.comment.dto.CommentDto;
@@ -13,6 +16,7 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,6 +27,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentValidator commentValidator;
     private final ItemService itemService;
     private final UserService userService;
+    private final CommentMapper commentMapper;
 
     @Override
     @Transactional
@@ -30,20 +35,26 @@ public class CommentServiceImpl implements CommentService {
         Item item = itemService.getItemById(itemId);
         User author = userService.getUserById(authorId);
         commentValidator.validateCommentCreation(item, author);
-        Comment comment = CommentMapper.toComment(dto, item, author);
+
+        Comment comment = commentMapper.toEntity(dto, item, author);
+        comment.setCreated(LocalDateTime.now());
+
         Comment savedComment = commentRepository.save(comment);
-        return CommentMapper.toDto(savedComment);
+        return commentMapper.toDto(savedComment);
     }
 
     @Override
-    public List<CommentDto> getCommentsByItemId(Long itemId) {
-        List<Comment> comments = commentRepository.findByItemId(itemId);
-        return CommentMapper.toDtoList(comments);
+    public Page<CommentDto> getCommentsByItemId(Long itemId, Pageable pageable) {
+        Page<Comment> commentsPage = commentRepository.findByItemId(itemId, pageable);
+        List<CommentDto> commentDtos = commentMapper.toDtoList(commentsPage.getContent());
+        return new PageImpl<>(commentDtos, pageable, commentsPage.getTotalElements());
     }
 
     @Override
-    public List<CommentDto> getCommentsByItemIds(List<Long> itemIds) {
-        List<Comment> comments = commentRepository.findByItemIdIn(itemIds);
-        return CommentMapper.toDtoList(comments);
+    public Page<CommentDto> getCommentsByItemIds(List<Long> itemIds, Pageable pageable) {
+        Page<Comment> commentsPage = commentRepository.findByItemIdIn(itemIds, pageable);
+        List<CommentDto> commentDtos = commentMapper.toDtoList(commentsPage.getContent());
+        return new PageImpl<>(commentDtos, pageable, commentsPage.getTotalElements());
     }
 }
+
