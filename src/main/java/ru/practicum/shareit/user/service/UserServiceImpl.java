@@ -1,6 +1,8 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -25,6 +27,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User updateUser(Long userId, User user) {
         User existingUser = getUserById(userId);
         validator.updateUserFields(existingUser, user);
@@ -38,11 +41,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return repository.findAll();
+    public Page<User> getAllUsers(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long userId) {
         validator.validateExistingUser(userId);
         repository.deleteById(userId);
