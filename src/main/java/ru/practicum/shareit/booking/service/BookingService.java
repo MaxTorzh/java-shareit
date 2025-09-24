@@ -1,8 +1,8 @@
 package ru.practicum.shareit.booking.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.model.Booking;
-
-import java.util.List;
 
 public interface BookingService {
 
@@ -14,9 +14,9 @@ public interface BookingService {
 
     Booking getBookingByIdWithAccessCheck(Long bookingId, Long userId);
 
-    List<Booking> getUserBookings(Long userId);
+    Page<Booking> getUserBookings(Long userId, Pageable pageable);
 
-    List<Booking> getOwnerBookings(Long ownerId);
+    Page<Booking> getOwnerBookings(Long ownerId, Pageable pageable);
 
     void cancelBooking(Long bookingId, Long userId);
 }

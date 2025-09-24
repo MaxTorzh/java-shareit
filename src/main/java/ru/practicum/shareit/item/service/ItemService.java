@@ -1,8 +1,9 @@
 package ru.practicum.shareit.item.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.List;
 
 public interface ItemService {
 
@@ -12,9 +13,10 @@ public interface ItemService {
 
     Item getItemById(Long itemId);
 
-    List<Item> getUserItems(Long userId);
+    Page<Item> getUserItems(Long userId, Pageable pageable);
 
-    List<Item> searchItems(String text);
+    Page<Item> searchItems(String text, Pageable pageable);
 
     void deleteItem(Long itemId);
 }
+

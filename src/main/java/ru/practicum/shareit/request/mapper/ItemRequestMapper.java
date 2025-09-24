@@ -1,36 +1,21 @@
 package ru.practicum.shareit.request.mapper;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.Optional;
+@Mapper(componentModel = "spring")
+public interface ItemRequestMapper {
 
-public class ItemRequestMapper {
-    public static ItemRequestDto toDto(ItemRequest itemRequest) {
-        if (itemRequest == null) {
-            return null;
-        }
+    @Mapping(source = "requester.id", target = "requesterId")
+    @Mapping(source = "requester", target = "requester")
+    ItemRequestDto toDto(ItemRequest itemRequest);
 
-        ItemRequestDto dto = new ItemRequestDto();
-        dto.setId(itemRequest.getId());
-        dto.setDescription(itemRequest.getDescription());
-        Optional.ofNullable(itemRequest.getRequester())
-                .ifPresent(requester -> dto.setRequesterId(requester.getId()));
-        dto.setCreatedTime(itemRequest.getCreatedTime());
-        return dto;
-    }
-
-    public static ItemRequest toItemRequest(ItemRequestDto dto, User requester) {
-        if (dto == null) {
-            return null;
-        }
-
-        ItemRequest itemRequest = new ItemRequest();
-        itemRequest.setId(dto.getId());
-        itemRequest.setDescription(dto.getDescription());
-        itemRequest.setRequester(requester);
-        itemRequest.setCreatedTime(dto.getCreatedTime());
-        return itemRequest;
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "requester", source = "requester")
+    @Mapping(target = "createdTime", ignore = true)
+    ItemRequest toEntity(ItemRequestRequestDto requestDto, User requester);
 }

@@ -80,7 +80,8 @@ public class BookingValidator {
         if (booking.getStart().isAfter(booking.getEnd())) {
             throw new ValidationException("Дата начала пользования должна быть до даты окончания");
         }
-        if (booking.getStart().isBefore(LocalDateTime.now())) {
+        if (booking.getStart().isBefore(LocalDateTime.now()) &&
+                booking.getEnd().isAfter(LocalDateTime.now())) {
             throw new ValidationException("Дата начала должна быть в будущем");
         }
     }

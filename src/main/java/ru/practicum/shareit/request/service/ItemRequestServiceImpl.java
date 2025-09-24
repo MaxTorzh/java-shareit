@@ -1,6 +1,8 @@
 package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -8,7 +10,6 @@ import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,19 +31,19 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public List<ItemRequest> getUserRequests(Long userId) {
+    public Page<ItemRequest> getUserRequests(Long userId, Pageable pageable) {
         userService.getUserById(userId);
-        return itemRequestRepository.findByRequesterId(userId);
+        return itemRequestRepository.findByRequesterId(userId, pageable);
     }
 
     @Override
-    public List<ItemRequest> getAllRequests() {
-        return itemRequestRepository.findAll();
+    public Page<ItemRequest> getAllRequests(Pageable pageable) {
+        return itemRequestRepository.findAll(pageable);
     }
 
     @Override
-    public List<ItemRequest> getOtherUserRequests(Long userId) {
+    public Page<ItemRequest> getOtherUserRequests(Long userId, Pageable pageable) {
         userService.getUserById(userId);
-        return itemRequestRepository.findAllExceptRequester(userId);
+        return itemRequestRepository.findAllExceptRequester(userId, pageable);
     }
 }

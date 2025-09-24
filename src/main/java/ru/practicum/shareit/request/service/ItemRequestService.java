@@ -1,8 +1,8 @@
 package ru.practicum.shareit.request.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.request.model.ItemRequest;
-
-import java.util.List;
 
 public interface ItemRequestService {
 
@@ -10,9 +10,9 @@ public interface ItemRequestService {
 
     ItemRequest getRequestById(Long requestId);
 
-    List<ItemRequest> getUserRequests(Long userId);
+    Page<ItemRequest> getUserRequests(Long userId, Pageable pageable);
 
-    List<ItemRequest> getAllRequests();
+    Page<ItemRequest> getAllRequests(Pageable pageable);
 
-    List<ItemRequest> getOtherUserRequests(Long userId);
+    Page<ItemRequest> getOtherUserRequests(Long userId, Pageable pageable);
 }

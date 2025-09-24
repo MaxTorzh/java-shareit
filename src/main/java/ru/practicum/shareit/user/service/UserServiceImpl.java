@@ -1,69 +1,62 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
-
-import java.util.List;
+import ru.practicum.shareit.user.validator.UserValidator;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
+    private final UserRepository repository;
+    private final UserValidator validator;
 
     @Override
+    @Transactional
     public User createUser(User user) {
-        checkUniqueEmail(user.getEmail());
-        return userRepository.save(user);
+        validator.checkUniqueEmail(user.getEmail());
+        return saveUser(user, "создании пользователя");
     }
 
     @Override
+    @Transactional
     public User updateUser(Long userId, User user) {
         User existingUser = getUserById(userId);
-        updateUserFields(existingUser, user);
-        return userRepository.save(existingUser);
+        validator.updateUserFields(existingUser, user);
+        return saveUser(existingUser, "обновлении пользователя");
     }
 
     @Override
     public User getUserById(Long userId) {
-        return userRepository.findById(userId)
+        return repository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с ID: " + userId + " не найден"));
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public Page<User> getAllUsers(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long userId) {
-        validateExistingUser(userId);
-        userRepository.deleteById(userId);
+        validator.validateExistingUser(userId);
+        repository.deleteById(userId);
     }
 
-    private void updateUserFields(User existingUser, User newUser) {
-        if (newUser.getName() != null) {
-            existingUser.setName(newUser.getName());
-        }
-        if (newUser.getEmail() != null &&
-        !newUser.getEmail().equals(existingUser.getEmail())) {
-            checkUniqueEmail(newUser.getEmail());
-            existingUser.setEmail(newUser.getEmail());
-        }
-    }
-
-    private void validateExistingUser(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundException("Пользователь с ID: " + userId + " не найден");
-        }
-    }
-
-    private void checkUniqueEmail(String email) {
-        if (userRepository.existsByEmail(email)) {
-            throw new ConflictException("Такой email уже существует: " + email);
+    private User saveUser(User user, String operation) {
+        try {
+            return repository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new ConflictException("Ошибка при " + operation + ": " + user.getEmail());
         }
     }
 }
