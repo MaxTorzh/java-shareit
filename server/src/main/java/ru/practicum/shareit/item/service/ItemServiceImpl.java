@@ -13,6 +13,9 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.validator.ItemValidator;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -38,21 +41,18 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional
     public Item getItemById(Long itemId) {
         return repository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
     }
 
     @Override
-    @Transactional
     public Page<Item> getUserItems(Long userId, Pageable pageable) {
         service.getUserById(userId);
         return repository.findByOwnerId(userId, pageable);
     }
 
     @Override
-    @Transactional
     public Page<Item> searchItems(String text, Pageable pageable) {
         if (text == null || text.isBlank()) {
             return Page.empty();
@@ -68,9 +68,19 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Item getItemByIdWithDependencies(Long itemId) {
         return repository.findItemWithDependencies(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Item> getItemsWithDependencies(List<Long> itemIds) {
+        if (itemIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return repository.findItemsWithDependenciesByIds(itemIds);
     }
 
     private Item saveItem(Item item, String operation) {

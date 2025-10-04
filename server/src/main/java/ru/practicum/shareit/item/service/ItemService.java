@@ -4,6 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.item.model.Item;
 
+import java.util.List;
+
 
 public interface ItemService {
 
@@ -20,4 +22,6 @@ public interface ItemService {
     void deleteItem(Long itemId);
 
     Item getItemByIdWithDependencies(Long itemId);
+
+    List<Item> getItemsWithDependencies(List<Long> itemIds);
 }

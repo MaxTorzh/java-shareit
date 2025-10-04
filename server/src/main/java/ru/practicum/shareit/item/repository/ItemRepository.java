@@ -26,5 +26,18 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             "WHERE i.id = :itemId")
     Optional<Item> findItemWithDependencies(@Param("itemId") Long itemId);
 
+    @Query("SELECT i FROM Item i WHERE i.request.id IN :requestIds")
     List<Item> findByRequestId(Long requestId);
+
+    @Query("SELECT i FROM Item i " +
+            "LEFT JOIN FETCH i.owner " +
+            "LEFT JOIN FETCH i.request " +
+            "WHERE i.id IN :itemIds")
+    List<Item> findItemsWithDependenciesByIds(@Param("itemIds") List<Long> itemIds);
+
+    @Query("SELECT i FROM Item i " +
+            "LEFT JOIN FETCH i.owner " +
+            "LEFT JOIN FETCH i.request " +
+            "WHERE i.request.id = :requestId")
+    List<Item> findItemsWithDependenciesByRequestId(@Param("requestId") Long requestId);
 }

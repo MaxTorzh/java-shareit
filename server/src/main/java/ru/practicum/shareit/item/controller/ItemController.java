@@ -13,6 +13,7 @@ import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.item.service.ItemWithCommentsService;
+import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
@@ -96,12 +97,8 @@ public class ItemController {
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size) {
         log.info("Получен запрос на получение списка предметов пользователя с ID: {}", ownerId);
-
         Pageable pageable = PageRequest.of(from / size, size);
-        Page<Item> itemsPage = itemService.getUserItems(ownerId, pageable);
-        return itemsPage.getContent().stream()
-                .map(item -> itemWithCommentsService.getItemWithBookingsAndComments(item.getId(), ownerId))
-                .collect(Collectors.toList());
+        return itemWithCommentsService.getUserItemsWithBookingsAndComments(ownerId, pageable);
     }
 
     /**
@@ -143,7 +140,7 @@ public class ItemController {
                 commentService.createComment(
                         itemId,
                         commentMapper.toEntity(commentDto,
-                                itemService.getItemById(itemId),
+                                itemService.getItemByIdWithDependencies(itemId),
                                 userService.getUserById(authorId)),
                         authorId
                 )
