@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.client;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -13,6 +14,7 @@ import ru.practicum.shareit.item.dto.ItemRequestDto;
 
 import java.util.Map;
 
+@Slf4j
 @Service
 public class ItemClient extends BaseClient {
     private static final String API_PREFIX = "/items";
@@ -25,6 +27,7 @@ public class ItemClient extends BaseClient {
                         .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
                         .build()
         );
+        log.debug("ItemClient created with base URL: {}", serverUrl + API_PREFIX);
     }
 
     public ResponseEntity<Object> createItem(long ownerId, ItemRequestDto itemRequestDto) {
