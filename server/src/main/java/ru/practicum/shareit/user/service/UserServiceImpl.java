@@ -22,7 +22,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User createUser(User user) {
-        validator.checkUniqueEmail(user.getEmail());
+        validator.validateUserCreation(user);
         return saveUser(user, "создании пользователя");
     }
 

@@ -2,8 +2,9 @@ package ru.practicum.shareit.user.validator;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.exception.ConflictException;
+import ru.practicum.shareit.exception.ConflictException; // Вернем ConflictException для дубликатов
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException; // Оставим ValidationException для валидации
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -29,9 +30,26 @@ public class UserValidator {
         }
     }
 
+    public void validateUserCreation(User user) {
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new ValidationException("Email не может быть пустым");
+        }
+        if (!isValidEmail(user.getEmail())) {
+            throw new ValidationException("Email должен содержать символ @");
+        }
+        if (repository.existsByEmail(user.getEmail())) {
+            throw new ConflictException("Такой email уже существует: " + user.getEmail());
+        }
+    }
+
     public void checkUniqueEmail(String email) {
         if (repository.existsByEmail(email)) {
             throw new ConflictException("Такой email уже существует: " + email);
         }
     }
+
+    private boolean isValidEmail(String email) {
+        return email != null && email.contains("@");
+    }
 }
+

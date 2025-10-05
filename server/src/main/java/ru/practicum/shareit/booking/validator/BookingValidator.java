@@ -72,7 +72,7 @@ public class BookingValidator {
 
     public void validateItemAvailability(Item item) {
         if (!item.getAvailable()) {
-            throw new AccessDeniedException("Вещь недоступна для бронирования");
+            throw new ValidationException("Вещь недоступна для бронирования");
         }
     }
 
