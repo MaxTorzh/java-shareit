@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.service.BookingInfoService;
-import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.comment.service.CommentService;
 import ru.practicum.shareit.item.dto.ItemWithBookingsDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
@@ -30,7 +29,8 @@ public class ItemWithCommentsService {
     public ItemWithBookingsDto createItemWithBookingsDto(Item item, Long userId) {
         ItemWithBookingsDto itemDto = itemMapper.toWithBookingsDto(item);
         addBookingInfo(itemDto, item, userId);
-        List<CommentDto> comments = commentService.getCommentsByItemId(item.getId(), Pageable.unpaged()).getContent();
+        java.util.List<ru.practicum.shareit.comment.dto.CommentDto> comments =
+                commentService.getCommentsByItemIdWithAuthor(item.getId());
         itemDto.setComments(comments);
         return itemDto;
     }
@@ -44,13 +44,10 @@ public class ItemWithCommentsService {
 
     public List<ItemWithBookingsDto> getUserItemsWithBookingsAndComments(Long ownerId, Pageable pageable) {
         Page<Item> itemsPage = itemService.getUserItems(ownerId, pageable);
-
         List<Long> itemIds = itemsPage.getContent().stream()
                 .map(Item::getId)
                 .collect(Collectors.toList());
-
         List<Item> itemsWithDependencies = itemService.getItemsWithDependencies(itemIds);
-
         return itemsWithDependencies.stream()
                 .map(item -> createItemWithBookingsDto(item, ownerId))
                 .collect(Collectors.toList());

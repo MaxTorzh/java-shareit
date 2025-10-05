@@ -3,9 +3,9 @@ package ru.practicum.shareit.booking.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingListDto;
-import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.status.BookingStatus;
 import ru.practicum.shareit.item.model.Item;
@@ -23,6 +23,7 @@ public interface BookingMapper {
     @Mapping(source = "item.description", target = "item.description")
     @Mapping(source = "item.available", target = "item.available")
     @Mapping(source = "item.request.id", target = "item.requestId")
+    @Mapping(source = "item.owner.id", target = "item.ownerId")
     BookingDto toDto(Booking booking);
 
     @Mapping(source = "status", target = "status", qualifiedByName = "bookingStatusToString")
