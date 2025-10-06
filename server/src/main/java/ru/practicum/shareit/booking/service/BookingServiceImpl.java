@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.status.BookingState;
 import ru.practicum.shareit.booking.status.BookingStatus;
 import ru.practicum.shareit.booking.validator.BookingValidator;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 
 import java.time.LocalDateTime;
 
@@ -56,16 +58,57 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Page<Booking> getUserBookings(Long userId, String state, Pageable pageable) {
         validator.validateUserExists(userId);
-        return bookingRepository.findByBookerIdAndState(userId, state, LocalDateTime.now(), pageable);
+        LocalDateTime now = LocalDateTime.now();
+
+        BookingState bookingState = BookingState.from(state)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + state));
+
+        switch (bookingState) {
+            case ALL:
+                return bookingRepository.findByBookerId(userId, pageable);
+            case CURRENT:
+                return bookingRepository.findCurrentBookingsByBookerId(userId, now, pageable);
+            case PAST:
+                return bookingRepository.findPastBookingsByBookerId(userId, now, pageable);
+            case FUTURE:
+                return bookingRepository.findFutureBookingsByBookerId(userId, now, pageable);
+            case WAITING:
+                return bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.WAITING, pageable);
+            case REJECTED:
+                return bookingRepository.findByBookerIdAndStatus(userId, BookingStatus.REJECTED, pageable);
+            default:
+                throw new IllegalArgumentException("Unknown state: " + state);
+        }
     }
 
     @Override
     public Page<Booking> getOwnerBookings(Long ownerId, String state, Pageable pageable) {
         validator.validateUserExists(ownerId);
-        return bookingRepository.findByItemOwnerIdAndState(ownerId, state, LocalDateTime.now(), pageable);
+        LocalDateTime now = LocalDateTime.now();
+
+        BookingState bookingState = BookingState.from(state)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + state));
+
+        switch (bookingState) {
+            case ALL:
+                return bookingRepository.findByItemOwnerId(ownerId, pageable);
+            case CURRENT:
+                return bookingRepository.findCurrentBookingsByItemOwnerId(ownerId, now, pageable);
+            case PAST:
+                return bookingRepository.findPastBookingsByItemOwnerId(ownerId, now, pageable);
+            case FUTURE:
+                return bookingRepository.findFutureBookingsByItemOwnerId(ownerId, now, pageable);
+            case WAITING:
+                return bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.WAITING, pageable);
+            case REJECTED:
+                return bookingRepository.findByItemOwnerIdAndStatus(ownerId, BookingStatus.REJECTED, pageable);
+            default:
+                throw new IllegalArgumentException("Unknown state: " + state);
+        }
     }
 
     @Override
+    @Transactional
     public void cancelBooking(Long bookingId, Long userId) {
         Booking booking = getBookingById(bookingId);
 
@@ -74,6 +117,12 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
+    }
+
+    @Override
+    public BookingState parseState(String state) {
+        return BookingState.from(state)
+                .orElseThrow(() -> new ValidationException("Unknown state: " + state));
     }
 
     private void updateBookingStatus(Booking booking, Boolean approved) {

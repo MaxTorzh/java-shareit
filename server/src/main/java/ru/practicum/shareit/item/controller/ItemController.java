@@ -37,8 +37,10 @@ public class ItemController {
      * Создание нового предмета.
      */
     @PostMapping
-    public ItemDto createItem(@RequestBody ItemRequestDto itemRequestDto,
-                              @RequestHeader("X-Sharer-User-Id") long ownerId) {
+    public ItemDto createItem(
+            @RequestBody ItemRequestDto itemRequestDto,
+            @RequestHeader("X-Sharer-User-Id") long ownerId) {
+
         log.info("Получен запрос на создание нового предмета от пользователя с ID: {}", ownerId);
 
         return itemMapper.toDto(
@@ -58,9 +60,11 @@ public class ItemController {
      * Обновление данных существующего предмета.
      */
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@PathVariable long itemId,
-                              @RequestBody ItemRequestDto itemRequestDto,
-                              @RequestHeader("X-Sharer-User-Id") long ownerId) {
+    public ItemDto updateItem(
+            @PathVariable long itemId,
+            @RequestBody ItemRequestDto itemRequestDto,
+            @RequestHeader("X-Sharer-User-Id") long ownerId) {
+
         log.info("Получен запрос на обновление данных предмета с ID: {} от пользователя с ID: {}", itemId, ownerId);
 
         return itemMapper.toDto(
@@ -82,8 +86,10 @@ public class ItemController {
      * Заменяет старый эндпоинт getItemById.
      */
     @GetMapping("/{itemId}")
-    public ItemWithBookingsDto getItemWithBookings(@PathVariable long itemId,
-                                                   @RequestHeader("X-Sharer-User-Id") long userId) {
+    public ItemWithBookingsDto getItemWithBookings(
+            @PathVariable long itemId,
+            @RequestHeader("X-Sharer-User-Id") long userId) {
+
         log.info("Получен запрос на получение данных предмета с ID: {}", itemId);
         return itemWithCommentsService.getItemWithBookingsAndComments(itemId, userId);
     }
@@ -97,6 +103,7 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") long ownerId,
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "10") Integer size) {
+
         log.info("Получен запрос на получение списка предметов пользователя с ID: {}", ownerId);
         Pageable pageable = PageRequest.of(from / size, size);
         return itemWithCommentsService.getUserItemsWithBookingsAndComments(ownerId, pageable);
@@ -106,10 +113,12 @@ public class ItemController {
      * Поиск предметов по тексту.
      */
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestParam String text,
-                                     @RequestParam(defaultValue = "0") Integer from,
-                                     @RequestParam(defaultValue = "10") Integer size,
-                                     @RequestHeader(value = "X-Sharer-User-Id", required = false) Long userId) {
+    public List<ItemDto> searchItems(
+            @RequestParam String text,
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestHeader(value = "X-Sharer-User-Id", required = false) Long userId) {
+
         log.info("Получен запрос на поиск предметов по тексту: '{}'", text);
 
         Pageable pageable = PageRequest.of(from / size, size);
@@ -123,6 +132,7 @@ public class ItemController {
      */
     @DeleteMapping("/{itemId}")
     public void deleteItem(@PathVariable long itemId) {
+
         log.info("Получен запрос на удаление вещи с ID: {}", itemId);
         itemService.deleteItem(itemId);
     }
@@ -131,9 +141,11 @@ public class ItemController {
      * Добавление комментария.
      */
     @PostMapping("/{itemId}/comment")
-    public CommentDto createComment(@PathVariable long itemId,
-                                    @RequestBody CommentDto commentDto,
-                                    @RequestHeader("X-Sharer-User-Id") long authorId) {
+    public CommentDto createComment(
+            @PathVariable long itemId,
+            @RequestBody CommentDto commentDto,
+            @RequestHeader("X-Sharer-User-Id") long authorId) {
+
         log.info("Получен запрос на создание комментария для предмета с ID: {} от пользователя с ID: {}",
                 itemId, authorId);
 

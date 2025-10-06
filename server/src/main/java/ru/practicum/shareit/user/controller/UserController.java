@@ -26,6 +26,7 @@ public class UserController {
      */
     @PostMapping
     public UserDto createUser(@RequestBody UserDto userDto) {
+
         log.info("Получен запрос на создание нового пользователя");
         User user = userMapper.toEntity(userDto);
         return userMapper.toDto(service.createUser(user));
@@ -35,8 +36,10 @@ public class UserController {
      * Обновление данных существующего пользователя.
      */
     @PatchMapping("/{userId}")
-    public UserDto updateUser(@PathVariable long userId,
-                              @RequestBody UserDto userDto) {
+    public UserDto updateUser(
+            @PathVariable long userId,
+            @RequestBody UserDto userDto) {
+
         log.info("Получен запрос на обновление данных пользователя с ID: {}", userId);
         User user = userMapper.toEntity(userDto);
         return userMapper.toDto(service.updateUser(userId, user));
@@ -47,6 +50,7 @@ public class UserController {
      */
     @GetMapping("/{userId}")
     public UserDto getUserById(@PathVariable long userId) {
+
         log.info("Получен запрос на получение данных пользователя с ID: {}", userId);
         return userMapper.toDto(service.getUserById(userId));
     }
@@ -55,8 +59,10 @@ public class UserController {
      * Получение списка всех пользователей.
      */
     @GetMapping
-    public List<UserDto> getAllUsers(@RequestParam(defaultValue = "0") Integer from,
-                                     @RequestParam(defaultValue = "10") Integer size) {
+    public List<UserDto> getAllUsers(
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "10") Integer size) {
+
         log.info("Получен запрос на получение списка всех пользователей");
         Pageable pageable = PageRequest.of(from / size, size);
         return service.getAllUsers(pageable).getContent().stream()
@@ -69,6 +75,7 @@ public class UserController {
      */
     @DeleteMapping("/{userId}")
     public void deleteUser(@PathVariable long userId) {
+
         log.info("Получен запрос на удаление пользователя с ID: {}", userId);
         service.deleteUser(userId);
     }

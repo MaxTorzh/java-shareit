@@ -1,16 +1,21 @@
 package ru.practicum.shareit.booking.status;
 
+import java.util.Optional;
+
 public enum BookingState {
-    // Все
     ALL,
-    // Текущие
     CURRENT,
-    // Будущие
     FUTURE,
-    // Завершенные
     PAST,
-    // Отклоненные
     REJECTED,
-    // Ожидающие подтверждения
     WAITING;
+
+    public static Optional<BookingState> from(String state) {
+        for (BookingState bookingState : BookingState.values()) {
+            if (bookingState.name().equalsIgnoreCase(state)) {
+                return Optional.of(bookingState);
+            }
+        }
+        return Optional.empty();
+    }
 }

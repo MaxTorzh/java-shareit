@@ -12,7 +12,6 @@ import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -27,8 +26,10 @@ public class ItemRequestController {
      * Создание нового запроса на предмет.
      */
     @PostMapping
-    public ItemRequestsDto createItemRequest(@RequestBody ItemRequestRequestDto requestDto,
-                                            @RequestHeader("X-Sharer-User-Id") long requesterId) {
+    public ItemRequestsDto createItemRequest(
+            @RequestBody ItemRequestRequestDto requestDto,
+            @RequestHeader("X-Sharer-User-Id") long requesterId) {
+
         log.info("Получен запрос на создание запроса от пользователя с ID: {}", requesterId);
         return itemRequestMapper.toDto(
                 itemRequestService.createRequest(itemRequestMapper.toEntity(requestDto,
@@ -44,8 +45,10 @@ public class ItemRequestController {
      * @return данные запроса
      */
     @GetMapping("/{requestId}")
-    public ItemRequestsDto getRequestById(@PathVariable long requestId,
-                                         @RequestHeader("X-Sharer-User-Id") long userId) {
+    public ItemRequestsDto getRequestById(
+            @PathVariable long requestId,
+            @RequestHeader("X-Sharer-User-Id") long userId) {
+
         log.info("Получен запрос на получение данных запроса с ID: {} от пользователя с ID: {}", requestId, userId);
         return itemRequestService.getItemRequestDtoById(requestId);
     }
@@ -57,9 +60,11 @@ public class ItemRequestController {
      * @return список запросов пользователя
      */
     @GetMapping
-    public List<ItemRequestsDto> getUserRequests(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                 @RequestParam(defaultValue = "0") Integer from,
-                                                 @RequestParam(defaultValue = "10") Integer size) {
+    public List<ItemRequestsDto> getUserRequests(
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "10") Integer size) {
+
         log.info("Получен запрос на получение списка запросов пользователя с ID: {}", userId);
         Pageable pageable = PageRequest.of(from / size, size);
         return itemRequestService.getUserRequestsDtoList(userId, pageable);
@@ -72,9 +77,11 @@ public class ItemRequestController {
      * @return список всех запросов
      */
     @GetMapping("/all")
-    public List<ItemRequestsDto> getAllRequests(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                @RequestParam(defaultValue = "0") Integer from,
-                                                @RequestParam(defaultValue = "10") Integer size) {
+    public List<ItemRequestsDto> getAllRequests(
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "10") Integer size) {
+
         log.info("Получен запрос на получение списка всех доступных запросов от пользователя с ID: {}", userId);
         Pageable pageable = PageRequest.of(from / size, size);
         return itemRequestService.getAllRequestsDtoList(pageable);
@@ -87,9 +94,11 @@ public class ItemRequestController {
      * @return список запросов других пользователей
      */
     @GetMapping("/other")
-    public List<ItemRequestsDto> getOtherUserRequests(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                      @RequestParam(defaultValue = "0") Integer from,
-                                                      @RequestParam(defaultValue = "10") Integer size) {
+    public List<ItemRequestsDto> getOtherUserRequests(
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "10") Integer size) {
+
         log.info("Получен запрос на получение списка запросов других пользователей от пользователя с ID: {}", userId);
         Pageable pageable = PageRequest.of(from / size, size);
         return itemRequestService.getOtherUserRequestsDtoList(userId, pageable);

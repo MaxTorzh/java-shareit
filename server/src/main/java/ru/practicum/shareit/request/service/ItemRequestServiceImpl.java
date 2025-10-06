@@ -61,7 +61,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public ItemRequestsDto getItemRequestDtoById(Long requestId) {
-        // Используем оптимизированный метод с JOIN FETCH
         ItemRequest request = getItemRequestByIdWithDependencies(requestId);
         ItemRequestsDto dto = itemRequestMapper.toDto(request);
         populateItemsForRequestsWithDependencies(dto);

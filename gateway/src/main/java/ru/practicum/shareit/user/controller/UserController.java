@@ -22,34 +22,76 @@ public class UserController {
 
     private final UserClient userClient;
 
+    /**
+     * Создание нового пользователя.
+     *
+     * @param userDto данные пользователя для создания
+     * @return созданный пользователь в формате ResponseEntity
+     */
     @PostMapping
-    public ResponseEntity<Object> createUser(@Valid @RequestBody UserDto userDto) {
+    public ResponseEntity<Object> createUser(
+            @Valid @RequestBody UserDto userDto) {
+
         log.info("Creating user {}", userDto);
         return userClient.createUser(userDto);
     }
 
+    /**
+     * Обновление информации о пользователе.
+     *
+     * @param userId идентификатор пользователя для обновления
+     * @param userDto данные пользователя для обновления
+     * @return обновленный пользователь в формате ResponseEntity
+     */
     @PatchMapping("/{userId}")
-    public ResponseEntity<Object> updateUser(@PathVariable Long userId, @RequestBody UserDto userDto) {
+    public ResponseEntity<Object> updateUser(
+            @PathVariable Long userId,
+            @RequestBody UserDto userDto) {
+
         log.info("Updating user with id {}", userId);
         return userClient.updateUser(userId, userDto);
     }
 
+    /**
+     * Получение информации о пользователе по его идентификатору.
+     *
+     * @param userId идентификатор пользователя
+     * @return информация о пользователе в формате ResponseEntity
+     */
     @GetMapping("/{userId}")
-    public ResponseEntity<Object> getUserById(@PathVariable Long userId) {
+    public ResponseEntity<Object> getUserById(
+            @PathVariable Long userId) {
+
         log.info("Getting user by id {}", userId);
         return userClient.getUserById(userId);
     }
 
+    /**
+     * Получение списка всех пользователей с пагинацией.
+     *
+     * @param from индекс первого элемента для пагинации (начиная с 0)
+     * @param size количество элементов для пагинации (больше 0)
+     * @return список пользователей в формате ResponseEntity
+     */
     @GetMapping
     public ResponseEntity<Object> getAllUsers(
             @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
             @Positive @RequestParam(defaultValue = "10") Integer size) {
+
         log.info("Getting all users with from={} and size={}", from, size);
         return userClient.getAllUsers(from, size);
     }
 
+    /**
+     * Удаление пользователя по его идентификатору.
+     *
+     * @param userId идентификатор пользователя для удаления
+     * @return результат операции в формате ResponseEntity
+     */
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Object> deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<Object> deleteUser(
+            @PathVariable Long userId) {
+
         log.info("Deleting user with id {}", userId);
         return userClient.deleteUser(userId);
     }
