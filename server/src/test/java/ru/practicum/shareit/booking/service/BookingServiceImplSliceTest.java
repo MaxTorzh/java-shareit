@@ -26,16 +26,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 /**
- * Интеграционные тесты для сервиса бронирований {@link BookingServiceImpl}.
- * Тестирует все основные функции сервиса бронирований:
- * - Создание бронирования
- * - Получение бронирования по ID
- * - Подтверждение/отклонение бронирования
- * - Получение списков бронирований пользователя и владельца
- * - Отмена бронирования
+ * Slice тесты для сервиса бронирований {@link BookingServiceImpl}.
+ * Тестируют функциональность сервиса с использованием реальной базы данных
+ * и моков для внешних сервисов (UserService, ItemService).
  *
- * Тесты используют реальную базу данных в памяти (H2) через TestEntityManager
- * и моки внешних сервисов (UserService, ItemService) для изоляции тестируемого функционала.
+ * Используют @DataJpaTest для тестирования слоя работы с БД и @Import для
+ * загрузки тестируемого сервиса и его зависимостей.
  *
  * Класс использует аннотацию {@link DirtiesContext} для очистки контекста
  * после каждого теста, обеспечивая независимость тестов друг от друга.
@@ -43,7 +39,7 @@ import static org.mockito.Mockito.when;
 @DataJpaTest
 @Import({BookingServiceImpl.class, BookingValidator.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class BookingServiceImplIntegrationTest {
+class BookingServiceImplSliceTest {
 
     @Autowired
     private BookingService bookingService;

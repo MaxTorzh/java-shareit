@@ -30,14 +30,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Интеграционные тесты для сервиса комментариев {@link CommentServiceImpl}.
- * Тестирует все основные функции сервиса комментариев:
- * - Создание комментария к предмету
- * - Получение комментариев по ID предмета
- * - Валидацию возможности создания комментариев
+ * Slice тесты для сервиса комментариев {@link CommentServiceImpl}.
+ * Тестируют функциональность сервиса с использованием реальной базы данных
+ * и моков для внешних сервисов (UserService, ItemService).
  *
- * Тесты используют реальную базу данных в памяти (H2) через TestEntityManager
- * и моки внешних сервисов (UserService, ItemService) для изоляции тестируемого функционала.
+ * Используют @DataJpaTest для тестирования слоя работы с БД и @Import для
+ * загрузки тестируемого сервиса и его зависимостей.
  *
  * Класс использует аннотацию {@link DirtiesContext} для очистки контекста
  * после каждого теста, обеспечивая независимость тестов друг от друга.
@@ -48,7 +46,7 @@ import static org.mockito.Mockito.*;
 @DataJpaTest
 @Import({CommentServiceImpl.class, CommentMapperImpl.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class CommentServiceImplIntegrationTest {
+class CommentServiceImplSliceTest {
 
     @Autowired
     private CommentService commentService;

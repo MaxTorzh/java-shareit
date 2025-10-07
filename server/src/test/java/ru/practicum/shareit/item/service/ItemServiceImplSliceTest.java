@@ -21,17 +21,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 /**
- * Интеграционные тесты для сервиса предметов {@link ItemServiceImpl}.
- * Тестирует все основные функции сервиса предметов:
- * - Создание предмета
- * - Получение предмета по ID
- * - Обновление предмета
- * - Получение списка предметов пользователя
- * - Поиск предметов по тексту
- * - Удаление предмета
+ * Slice тесты для сервиса предметов {@link ItemServiceImpl}.
+ * Тестируют функциональность сервиса с использованием реальной базы данных
+ * и моков для внешних сервисов (UserService).
  *
- * Тесты используют реальную базу данных в памяти (H2) через TestEntityManager
- * и моки внешних сервисов (UserService) для изоляции тестируемого функционала.
+ * Используют @DataJpaTest для тестирования слоя работы с БД и @Import для
+ * загрузки тестируемого сервиса и его зависимостей.
  *
  * Класс использует аннотацию {@link DirtiesContext} для очистки контекста
  * после каждого теста, обеспечивая независимость тестов друг от друга.
@@ -39,7 +34,7 @@ import static org.mockito.Mockito.when;
 @DataJpaTest
 @Import({ItemServiceImpl.class, ItemValidator.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class ItemServiceImplIntegrationTest {
+class ItemServiceImplSliceTest {
 
     @Autowired
     private ItemService itemService;
