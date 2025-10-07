@@ -21,5 +21,4 @@ public interface BookingService {
 
     void cancelBooking(Long bookingId, Long userId);
 
-    BookingState parseState(String state);
 }

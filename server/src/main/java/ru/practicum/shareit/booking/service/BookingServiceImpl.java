@@ -119,12 +119,6 @@ public class BookingServiceImpl implements BookingService {
         bookingRepository.save(booking);
     }
 
-    @Override
-    public BookingState parseState(String state) {
-        return BookingState.from(state)
-                .orElseThrow(() -> new ValidationException("Unknown state: " + state));
-    }
-
     private void updateBookingStatus(Booking booking, Boolean approved) {
         if (approved) {
             booking.setStatus(BookingStatus.APPROVED);
