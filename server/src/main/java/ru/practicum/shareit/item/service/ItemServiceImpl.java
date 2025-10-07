@@ -54,9 +54,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Page<Item> searchItems(String text, Pageable pageable) {
-        if (text == null || text.isBlank()) {
-            return Page.empty();
-        }
         return repository.searchAvailableItems(text, pageable);
     }
 

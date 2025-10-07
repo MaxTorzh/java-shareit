@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.practicum.shareit.booking.client.BookingClient;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
-import ru.practicum.shareit.booking.status.BookingState;
+import ru.practicum.shareit.booking.validator.BookingValidator;
 
 
 @Controller
@@ -22,6 +22,7 @@ import ru.practicum.shareit.booking.status.BookingState;
 @Validated
 public class BookingController {
 	private final BookingClient bookingClient;
+	private final BookingValidator validator;
 
 	/**
 	 * Получение списка бронирований для пользователя с возможностью фильтрации по статусу.
@@ -40,10 +41,9 @@ public class BookingController {
 			@PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
 			@Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
 
-		BookingState state = BookingState.from(stateParam)
-				.orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
+		validator.validateBookingState(stateParam);
 		log.info("Get booking with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
-		return bookingClient.getUserBookings(userId, state, from, size);
+		return bookingClient.getUserBookings(userId, stateParam, from, size);
 	}
 
 	/**
@@ -58,6 +58,7 @@ public class BookingController {
 			@RequestHeader("X-Sharer-User-Id") long userId,
 			@RequestBody @Valid BookItemRequestDto requestDto) {
 
+		validator.validateBookingCreation(requestDto);
 		log.info("Creating booking {}, userId={}", requestDto, userId);
 		return bookingClient.createBooking(userId, requestDto);
 	}
@@ -74,6 +75,7 @@ public class BookingController {
 			@RequestHeader("X-Sharer-User-Id") long userId,
 			@PathVariable Long bookingId) {
 
+		validator.validateBookingId(bookingId);
 		log.info("Get booking {}, userId={}", bookingId, userId);
 		return bookingClient.getBookingById(userId, bookingId);
 	}
@@ -92,6 +94,8 @@ public class BookingController {
 			@PathVariable Long bookingId,
 			@RequestParam Boolean approved) {
 
+		validator.validateBookingId(bookingId);
+		validator.validateBookingApproval(approved);
 		log.info("Approve booking {}, userId={}, approved={}", bookingId, userId, approved);
 		return bookingClient.approveBooking(userId, bookingId, approved);
 	}
@@ -113,10 +117,9 @@ public class BookingController {
 			@PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
 			@Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
 
-		BookingState state = BookingState.from(stateParam)
-				.orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
+		validator.validateBookingState(stateParam);
 		log.info("Get owner bookings with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
-		return bookingClient.getOwnerBookings(userId, state, from, size);
+		return bookingClient.getOwnerBookings(userId, stateParam, from, size);
 	}
 
 	/**
@@ -131,6 +134,7 @@ public class BookingController {
 			@RequestHeader("X-Sharer-User-Id") long userId,
 			@PathVariable Long bookingId) {
 
+		validator.validateBookingId(bookingId);
 		log.info("Cancel booking {}, userId={}", bookingId, userId);
 		return bookingClient.cancelBooking(userId, bookingId);
 	}

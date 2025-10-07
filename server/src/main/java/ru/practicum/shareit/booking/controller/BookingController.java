@@ -81,9 +81,8 @@ public class BookingController {
             @RequestParam(defaultValue = "10") Integer size) {
 
         log.info("Получен запрос на получение списка бронирований пользователя с ID: {}, state: {}", userId, state);
-        BookingState bookingState = bookingService.parseState(state);
         Pageable pageable = PageRequest.of(from / size, size);
-        return bookingService.getUserBookings(userId, bookingState.name(), pageable).stream()
+        return bookingService.getUserBookings(userId, state, pageable).stream()
                 .map(bookingMapper::toDto)
                 .collect(Collectors.toList());
     }

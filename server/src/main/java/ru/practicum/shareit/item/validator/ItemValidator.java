@@ -11,7 +11,6 @@ import ru.practicum.shareit.user.service.UserService;
 @RequiredArgsConstructor
 public class ItemValidator {
     private final UserService service;
-    private final ItemRepository repository;
 
     public void updateItemFields(Item existingItem, Item newItem) {
         if (newItem.getName() != null) {
@@ -30,15 +29,5 @@ public class ItemValidator {
             throw new ValidationException("Владелец обязателен");
         }
         service.getUserById(item.getOwner().getId());
-
-        if (item.getName() == null || item.getName().isBlank()) {
-            throw new ValidationException("Название обязательно");
-        }
-        if (item.getDescription() == null || item.getDescription().isBlank()) {
-            throw new ValidationException("Описание обязательно");
-        }
-        if (item.getAvailable() == null) {
-            throw new ValidationException("Статус доступности обязателен");
-        }
     }
 }

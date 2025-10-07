@@ -12,6 +12,7 @@ import ru.practicum.shareit.request.dto.ItemRequestRequestDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import ru.practicum.shareit.request.validator.ItemRequestValidator;
 
 @Controller
 @RequestMapping(path = "/requests")
@@ -21,6 +22,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 public class ItemRequestController {
 
     private final ItemRequestClient requestClient;
+    private final ItemRequestValidator validator;
 
     /**
      * Создание нового запроса на вещь от имени указанного пользователя.
@@ -34,6 +36,7 @@ public class ItemRequestController {
             @RequestHeader("X-Sharer-User-Id") long requesterId,
             @Valid @RequestBody ItemRequestRequestDto requestDto) {
 
+        validator.validateItemRequestCreation(requestDto);
         log.info("Creating item request {} for user {}", requestDto, requesterId);
         return requestClient.createItemRequest(requesterId, requestDto);
     }
@@ -50,6 +53,7 @@ public class ItemRequestController {
             @RequestHeader("X-Sharer-User-Id") long userId,
             @PathVariable Long requestId) {
 
+        validator.validateRequestId(requestId);
         log.info("Getting request with id {} for user {}", requestId, userId);
         return requestClient.getRequestById(userId, requestId);
     }
@@ -68,6 +72,7 @@ public class ItemRequestController {
             @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
             @Positive @RequestParam(defaultValue = "10") Integer size) {
 
+        validator.validatePagination(from, size);
         log.info("Getting user requests for user {} with from={} and size={}", userId, from, size);
         return requestClient.getUserRequests(userId, from, size);
     }
@@ -86,6 +91,7 @@ public class ItemRequestController {
             @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
             @Positive @RequestParam(defaultValue = "10") Integer size) {
 
+        validator.validatePagination(from, size);
         log.info("Getting all requests for user {} with from={} and size={}", userId, from, size);
         return requestClient.getAllRequests(userId, from, size);
     }
@@ -104,6 +110,7 @@ public class ItemRequestController {
             @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
             @Positive @RequestParam(defaultValue = "10") Integer size) {
 
+        validator.validatePagination(from, size);
         log.info("Getting other user requests for user {} with from={} and size={}", userId, from, size);
         return requestClient.getOtherUserRequests(userId, from, size);
     }

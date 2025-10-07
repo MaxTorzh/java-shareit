@@ -13,6 +13,7 @@ import ru.practicum.shareit.comment.dto.CommentDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import ru.practicum.shareit.item.validator.ItemValidator;
 
 @Controller
 @RequestMapping(path = "/items")
@@ -22,6 +23,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 public class ItemController {
 
     private final ItemClient itemClient;
+    private final ItemValidator validator;
 
     /**
      * Создание новой вещи от имени указанного пользователя.
@@ -35,6 +37,7 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") long ownerId,
             @RequestBody @Valid ItemRequestDto itemRequestDto) {
 
+        validator.validateItemCreation(itemRequestDto);
         log.info("Creating item {} for user {}", itemRequestDto, ownerId);
         return itemClient.createItem(ownerId, itemRequestDto);
     }
@@ -53,6 +56,7 @@ public class ItemController {
             @PathVariable Long itemId,
             @RequestBody @Valid ItemRequestDto itemRequestDto) {
 
+        validator.validateItemId(itemId);
         log.info("Updating item with id {} for user {}", itemId, ownerId);
         return itemClient.updateItem(ownerId, itemId, itemRequestDto);
     }
@@ -70,6 +74,7 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") long userId,
             @PathVariable Long itemId) {
 
+        validator.validateItemId(itemId);
         log.info("Getting item with id {} for user {}", itemId, userId);
         return itemClient.getItemWithBookings(userId, itemId);
     }
@@ -108,6 +113,7 @@ public class ItemController {
             @Positive @RequestParam(defaultValue = "10") Integer size,
             @RequestHeader(value = "X-Sharer-User-Id", required = false) Long userId) {
 
+        validator.validateSearchText(text);
         log.info("Searching items with text '{}' from={} size={}", text, from, size);
         return itemClient.searchItems(text, from, size, userId);
     }
@@ -122,6 +128,7 @@ public class ItemController {
     public ResponseEntity<Object> deleteItem(
             @PathVariable Long itemId) {
 
+        validator.validateItemId(itemId);
         log.info("Deleting item with id {}", itemId);
         return itemClient.deleteItem(itemId);
     }
@@ -140,6 +147,8 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") long authorId,
             @RequestBody @Valid CommentDto commentDto) {
 
+        validator.validateItemId(itemId);
+        validator.validateComment(commentDto);
         log.info("Creating comment for item {} from user {}", itemId, authorId);
         return itemClient.createComment(authorId, itemId, commentDto);
     }

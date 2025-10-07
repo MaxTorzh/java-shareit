@@ -12,6 +12,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import ru.practicum.shareit.user.validator.UserValidator;
 
 @Controller
 @RequestMapping(path = "/users")
@@ -21,6 +22,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 public class UserController {
 
     private final UserClient userClient;
+    private final UserValidator validator;
 
     /**
      * Создание нового пользователя.
@@ -31,6 +33,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<Object> createUser(
             @Valid @RequestBody UserDto userDto) {
+        validator.validateUserCreation(userDto);
 
         log.info("Creating user {}", userDto);
         return userClient.createUser(userDto);
@@ -47,6 +50,7 @@ public class UserController {
     public ResponseEntity<Object> updateUser(
             @PathVariable Long userId,
             @RequestBody UserDto userDto) {
+        validator.validateUserUpdate(userId, userDto);
 
         log.info("Updating user with id {}", userId);
         return userClient.updateUser(userId, userDto);

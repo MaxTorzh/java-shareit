@@ -25,8 +25,8 @@ public class BookingValidator {
         validateUserExists(booking.getBooker().getId());
         validateItemExists(booking.getItem().getId());
         validateItemAvailability(booking.getItem());
-        validateBookingDates(booking);
         validateNoOverlappingBookings(booking);
+        validateItemNotOwnedByUser(booking);
     }
 
     public void validateBookingAccess(Booking booking, Long userId) {
@@ -76,16 +76,6 @@ public class BookingValidator {
         }
     }
 
-    public void validateBookingDates(Booking booking) {
-        LocalDateTime now = LocalDateTime.now();
-        if (booking.getStart().isAfter(booking.getEnd())) {
-            throw new ValidationException("Дата начала пользования должна быть до даты окончания");
-        }
-        if (!booking.getStart().isAfter(now)) {
-            throw new ValidationException("Дата начала бронирования должна быть в будущем");
-        }
-    }
-
     public void validateNoOverlappingBookings(Booking booking) {
         List<Booking> overlappingBookings = bookingRepository.findByItemIdAndStatus(
                 booking.getItem().getId(), BookingStatus.APPROVED);
@@ -100,6 +90,12 @@ public class BookingValidator {
     public boolean isOverlapping(Booking newBooking, Booking existingBooking) {
         return newBooking.getStart().isBefore(existingBooking.getEnd()) &&
                 newBooking.getEnd().isAfter(existingBooking.getStart());
+    }
+
+    private void validateItemNotOwnedByUser(Booking booking) {
+        if (booking.getItem().getOwner().getId().equals(booking.getBooker().getId())) {
+            throw new ValidationException("Нельзя бронировать свою же вещь");
+        }
     }
 }
 
