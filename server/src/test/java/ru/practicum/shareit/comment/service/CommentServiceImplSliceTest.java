@@ -219,6 +219,51 @@ class CommentServiceImplSliceTest {
         assertThrows(ValidationException.class, () ->
                 commentService.createComment(item.getId(), newComment, author.getId()));
     }
+
+    /**
+     * Тест создания комментария с пустым текстом.
+     * Проверяет, что валидация предотвращает создание пустых комментариев.
+     */
+    @Test
+    void createComment_shouldThrowExceptionWhenTextIsEmpty() {
+        Comment newComment = new Comment();
+        newComment.setText("");
+
+        assertThrows(ValidationException.class, () ->
+                commentService.createComment(item.getId(), newComment, author.getId()));
+    }
+
+    /**
+     * Тест получения комментариев для несуществующего предмета.
+     * Проверяет правильную обработку исключений.
+     */
+    @Test
+    void getCommentsByItemId_shouldReturnEmptyWhenItemNotFound() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        var result = commentService.getCommentsByItemId(999L, pageable);
+
+        assertEquals(0, result.getTotalElements());
+    }
+
+    /**
+     * Тест получения комментариев для предмета без комментариев.
+     * Проверяет, что возвращается пустой список.
+     */
+    @Test
+    void getCommentsByItemIdWithAuthor_shouldReturnEmptyListWhenNoComments() {
+        Item newItem = new Item();
+        newItem.setName("Предмет без комментариев");
+        newItem.setDescription("Предмет без комментариев");
+        newItem.setAvailable(true);
+        newItem.setOwner(owner);
+        newItem = entityManager.persistAndFlush(newItem);
+
+        List<CommentDto> comments = commentService.getCommentsByItemIdWithAuthor(newItem.getId());
+
+        assertNotNull(comments);
+        assertTrue(comments.isEmpty());
+    }
 }
 
 

@@ -287,5 +287,66 @@ class BookingControllerIntegrationTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].status", is("CANCELLED")));
     }
+
+    /**
+     * Тест создания бронирования для несуществующего предмета.
+     * Проверяет правильную обработку ошибок для неверных ID предметов.
+     *
+     * @throws Exception если выполнение запроса завершится ошибкой
+     */
+    @Test
+    void createBooking_shouldReturnNotFoundWhenItemNotExists() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(999L); // Несуществующий предмет
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Тест получения бронирования по ID, когда пользователь не является владельцем или бронирующим.
+     * Проверяет правильный контроль доступа.
+     *
+     * @throws Exception если выполнение запроса завершится ошибкой
+     */
+    @Test
+    void getBookingById_shouldReturnForbiddenWhenUserIsNotOwnerOrBooker() throws Exception {
+        UserDto otherUser = new UserDto();
+        otherUser.setName("Другой пользователь");
+        otherUser.setEmail("other@test.com");
+
+        var otherUserResult = mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(otherUser)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        UserDto otherUserDto = objectMapper.readValue(
+                otherUserResult.getResponse().getContentAsString(), UserDto.class);
+
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        var createResult = mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Long bookingId = objectMapper.readTree(
+                createResult.getResponse().getContentAsString()).get("id").asLong();
+
+        mockMvc.perform(get("/bookings/{bookingId}", bookingId)
+                        .header(SHARER_HEADER, otherUserDto.getId()))
+                .andExpect(status().isForbidden());
+    }
 }
 
