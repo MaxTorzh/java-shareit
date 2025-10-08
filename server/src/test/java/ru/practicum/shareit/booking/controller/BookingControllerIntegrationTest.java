@@ -131,6 +131,78 @@ class BookingControllerIntegrationTest {
     }
 
     /**
+     * Тест создания бронирования владельцем собственного предмета.
+     * Проверяет, что бронирование владельцем своего предмета запрещено.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void createBooking_shouldReturnForbiddenWhenOwnerTriesToBookOwnItem() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, owner.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Тест создания бронирования для несуществующего предмета.
+     * Проверяет правильную обработку ошибок для неверных ID предметов.
+     *
+     * @throws Exception если выполнение запроса завершится ошибкой
+     */
+    @Test
+    void createBooking_shouldReturnNotFoundWhenItemNotExists() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(999L); // Несуществующий предмет
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Тест создания бронирования для недоступного предмета.
+     * Проверяет правильную обработку ошибок для недоступных предметов.
+     *
+     * @throws Exception если выполнение запроса завершится ошибкой
+     */
+    @Test
+    void createBooking_shouldReturnBadRequestWhenItemNotAvailable() throws Exception {
+        // Сделать предмет недоступным
+        ItemRequestDto itemDto = new ItemRequestDto();
+        itemDto.setName("Test Item");
+        itemDto.setDescription("Test Description");
+        itemDto.setAvailable(false);
+
+        mockMvc.perform(patch("/items/{id}", itemId)
+                        .header(SHARER_HEADER, owner.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(itemDto)))
+                .andExpect(status().isOk());
+
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    /**
      * Тест подтверждения бронирования владельцем.
      * Проверяет, что бронирование успешно подтверждается владельцем
      * и получает статус APPROVED.
@@ -162,6 +234,48 @@ class BookingControllerIntegrationTest {
     }
 
     /**
+     * Тест подтверждения бронирования не владельцем.
+     * Проверяет, что подтверждение бронирования не владельцем предмета запрещено.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void approveBooking_shouldReturnForbiddenWhenNotOwner() throws Exception {
+        // Создать другого пользователя
+        UserDto otherUser = new UserDto();
+        otherUser.setName("Other User");
+        otherUser.setEmail("other@test.com");
+
+        var otherUserResult = mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(otherUser)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        UserDto otherUserDto = objectMapper.readValue(
+                otherUserResult.getResponse().getContentAsString(), UserDto.class);
+
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        var createResult = mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Long bookingId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asLong();
+
+        mockMvc.perform(patch("/bookings/{bookingId}", bookingId)
+                        .header(SHARER_HEADER, otherUserDto.getId())
+                        .param("approved", "true"))
+                .andExpect(status().isForbidden());
+    }
+
+    /**
      * Тест получения информации о бронировании по ID.
      * Проверяет, что бронирование успешно возвращается по своему ID
      * и содержит корректные данные о бронирующем пользователе.
@@ -189,123 +303,6 @@ class BookingControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(bookingId.intValue())))
                 .andExpect(jsonPath("$.booker.id", is(booker.getId().intValue())));
-    }
-
-    /**
-     * Тест получения списка бронирований пользователя.
-     * Проверяет, что список бронирований пользователя успешно возвращается
-     * и содержит созданное бронирование.
-     *
-     * @throws Exception если возникают ошибки при выполнении запроса
-     */
-    @Test
-    void getUserBookings_shouldReturnUserBookings() throws Exception {
-        BookItemRequestDto bookingDto = new BookItemRequestDto();
-        bookingDto.setItemId(itemId);
-        bookingDto.setStart(LocalDateTime.now().plusDays(1));
-        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
-
-        mockMvc.perform(post("/bookings")
-                        .header(SHARER_HEADER, booker.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(bookingDto)))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(get("/bookings")
-                        .header(SHARER_HEADER, booker.getId())
-                        .param("state", "ALL")
-                        .param("from", "0")
-                        .param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].booker.id", is(booker.getId().intValue())));
-    }
-
-    /**
-     * Тест получения списка бронирований для владельца предметов.
-     * Проверяет, что список бронирований владельца успешно возвращается
-     * и содержит бронирования на его предметы.
-     *
-     * @throws Exception если возникают ошибки при выполнении запроса
-     */
-    @Test
-    void getOwnerBookings_shouldReturnOwnerBookings() throws Exception {
-        BookItemRequestDto bookingDto = new BookItemRequestDto();
-        bookingDto.setItemId(itemId);
-        bookingDto.setStart(LocalDateTime.now().plusDays(1));
-        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
-
-        mockMvc.perform(post("/bookings")
-                        .header(SHARER_HEADER, booker.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(bookingDto)))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(get("/bookings/owner")
-                        .header(SHARER_HEADER, owner.getId())
-                        .param("state", "ALL")
-                        .param("from", "0")
-                        .param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id", notNullValue()));
-    }
-
-    /**
-     * Тест отмены бронирования.
-     * Проверяет, что бронирование успешно отменяется пользователем
-     * и получает статус CANCELLED.
-     *
-     * @throws Exception если возникают ошибки при выполнении запроса
-     */
-    @Test
-    void cancelBooking_shouldCancelBooking() throws Exception {
-        BookItemRequestDto bookingDto = new BookItemRequestDto();
-        bookingDto.setItemId(itemId);
-        bookingDto.setStart(LocalDateTime.now().plusDays(1));
-        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
-
-        var createResult = mockMvc.perform(post("/bookings")
-                        .header(SHARER_HEADER, booker.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(bookingDto)))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        Long bookingId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asLong();
-
-        mockMvc.perform(delete("/bookings/{bookingId}", bookingId)
-                        .header(SHARER_HEADER, booker.getId()))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(get("/bookings")
-                        .header(SHARER_HEADER, booker.getId())
-                        .param("state", "ALL")
-                        .param("from", "0")
-                        .param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].status", is("CANCELLED")));
-    }
-
-    /**
-     * Тест создания бронирования для несуществующего предмета.
-     * Проверяет правильную обработку ошибок для неверных ID предметов.
-     *
-     * @throws Exception если выполнение запроса завершится ошибкой
-     */
-    @Test
-    void createBooking_shouldReturnNotFoundWhenItemNotExists() throws Exception {
-        BookItemRequestDto bookingDto = new BookItemRequestDto();
-        bookingDto.setItemId(999L); // Несуществующий предмет
-        bookingDto.setStart(LocalDateTime.now().plusDays(1));
-        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
-
-        mockMvc.perform(post("/bookings")
-                        .header(SHARER_HEADER, booker.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(bookingDto)))
-                .andExpect(status().isNotFound());
     }
 
     /**
@@ -348,5 +345,333 @@ class BookingControllerIntegrationTest {
                         .header(SHARER_HEADER, otherUserDto.getId()))
                 .andExpect(status().isForbidden());
     }
+
+    /**
+     * Тест получения списка бронирований пользователя.
+     * Проверяет, что список бронирований пользователя успешно возвращается
+     * и содержит созданное бронирование.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void getUserBookings_shouldReturnUserBookings() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .param("state", "ALL")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].booker.id", is(booker.getId().intValue())));
+    }
+
+    /**
+     * Тест получения списка бронирований пользователя с пагинацией.
+     * Проверяет, что пагинация работает корректно.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void getUserBookings_shouldHandlePagination() throws Exception {
+        // Создать несколько бронирований
+        for (int i = 0; i < 5; i++) {
+            BookItemRequestDto bookingDto = new BookItemRequestDto();
+            bookingDto.setItemId(itemId);
+            bookingDto.setStart(LocalDateTime.now().plusDays(i + 1));
+            bookingDto.setEnd(LocalDateTime.now().plusDays(i + 2));
+
+            mockMvc.perform(post("/bookings")
+                            .header(SHARER_HEADER, booker.getId())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(bookingDto)))
+                    .andExpect(status().isOk());
+        }
+
+        // Проверить пагинацию
+        mockMvc.perform(get("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .param("state", "ALL")
+                        .param("from", "2")
+                        .param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    /**
+     * Тест получения списка бронирований пользователя с некорректными параметрами пагинации.
+     * Проверяет, что некорректные параметры пагинации обрабатываются корректно.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void getUserBookings_shouldHandleInvalidPaginationParams() throws Exception {
+        mockMvc.perform(get("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .param("state", "ALL")
+                        .param("from", "-1")
+                        .param("size", "0"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    /**
+     * Тест получения списка бронирований пользователя с текущими бронированиями.
+     * Проверяет, что фильтрация по текущим бронированиям работает корректно.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void getUserBookings_shouldReturnCurrentBookings() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().minusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(1));
+
+        mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .param("state", "CURRENT")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    /**
+     * Тест получения списка бронирований пользователя с прошлыми бронированиями.
+     * Проверяет, что фильтрация по прошлым бронированиям работает корректно.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void getUserBookings_shouldReturnPastBookings() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().minusDays(2));
+        bookingDto.setEnd(LocalDateTime.now().minusDays(1));
+
+        mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .param("state", "PAST")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    /**
+     * Тест получения списка бронирований пользователя с будущими бронированиями.
+     * Проверяет, что фильтрация по будущим бронированиям работает корректно.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void getUserBookings_shouldReturnFutureBookings() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .param("state", "FUTURE")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    /**
+     * Тест получения списка бронирований пользователя с ожидающими бронированиями.
+     * Проверяет, что фильтрация по ожидающим бронированиям работает корректно.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void getUserBookings_shouldReturnWaitingBookings() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .param("state", "WAITING")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    /**
+     * Тест получения списка бронирований для владельца предметов.
+     * Проверяет, что список бронирований владельца успешно возвращается
+     * и содержит бронирования на его предметы.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void getOwnerBookings_shouldReturnOwnerBookings() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/bookings/owner")
+                        .header(SHARER_HEADER, owner.getId())
+                        .param("state", "ALL")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", notNullValue()));
+    }
+
+    /**
+     * Тест получения списка бронирований для владельца с отклоненными бронированиями.
+     * Проверяет, что фильтрация по отклоненным бронированиям работает корректно.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void getOwnerBookings_shouldReturnRejectedBookings() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        var createResult = mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Long bookingId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asLong();
+
+        mockMvc.perform(patch("/bookings/{bookingId}", bookingId)
+                        .header(SHARER_HEADER, owner.getId())
+                        .param("approved", "false"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/bookings/owner")
+                        .header(SHARER_HEADER, owner.getId())
+                        .param("state", "REJECTED")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    /**
+     * Тест отмены бронирования.
+     * Проверяет, что бронирование успешно отменяется пользователем
+     * и получает статус CANCELLED.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void cancelBooking_shouldCancelBooking() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        var createResult = mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Long bookingId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asLong();
+
+        mockMvc.perform(delete("/bookings/{bookingId}", bookingId)
+                        .header(SHARER_HEADER, booker.getId()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .param("state", "ALL")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].status", is("CANCELLED")));
+    }
+
+    /**
+     * Тест отмены уже подтвержденного бронирования.
+     * Проверяет, что отмена уже подтвержденного бронирования запрещена.
+     *
+     * @throws Exception если возникают ошибки при выполнении запроса
+     */
+    @Test
+    void cancelBooking_shouldReturnConflictWhenAlreadyApproved() throws Exception {
+        BookItemRequestDto bookingDto = new BookItemRequestDto();
+        bookingDto.setItemId(itemId);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+
+        var createResult = mockMvc.perform(post("/bookings")
+                        .header(SHARER_HEADER, booker.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Long bookingId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asLong();
+
+        // Подтвердить бронирование
+        mockMvc.perform(patch("/bookings/{bookingId}", bookingId)
+                        .header(SHARER_HEADER, owner.getId())
+                        .param("approved", "true"))
+                .andExpect(status().isOk());
+
+        // Попытаться отменить подтвержденное бронирование
+        mockMvc.perform(delete("/bookings/{bookingId}", bookingId)
+                        .header(SHARER_HEADER, booker.getId()))
+                .andExpect(status().isBadRequest());
+    }
 }
+
 

@@ -10,7 +10,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.practicum.shareit.exception.AccessDeniedException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.validator.ItemValidator;
@@ -203,5 +205,72 @@ class ItemServiceImplSliceTest {
         itemService.deleteItem(savedItem.getId());
 
         assertThrows(NotFoundException.class, () -> itemService.getItemById(savedItem.getId()));
+    }
+
+    /**
+     * Тест обновления предмета с частичными данными.
+     */
+    @Test
+    void updateItem_shouldUpdatePartialFields() {
+        Item savedItem = itemRepository.save(item);
+
+        Item updateItem = new Item();
+        updateItem.setName("Updated Name");
+        // Остальные поля null или не установлены
+
+        Item updatedItem = itemService.updateItem(savedItem.getId(), updateItem);
+
+        assertEquals("Updated Name", updatedItem.getName());
+        assertEquals("Test Description", updatedItem.getDescription()); // Не должен измениться
+        assertTrue(updatedItem.getAvailable()); // Не должен измениться
+    }
+
+    /**
+     * Тест поиска предметов с пустым текстом.
+     */
+    @Test
+    void searchItems_shouldReturnAllItemsWhenTextIsEmpty() {
+        itemRepository.save(item);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        var searchResult = itemService.searchItems("", pageable);
+
+        assertEquals(1, searchResult.getTotalElements());
+    }
+
+    /**
+     * Тест поиска предметов с недоступными предметами.
+     */
+    @Test
+    void searchItems_shouldNotReturnUnavailableItems() {
+        item.setAvailable(false);
+        itemRepository.save(item);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        var searchResult = itemService.searchItems("Test", pageable);
+
+        assertEquals(0, searchResult.getTotalElements());
+    }
+
+    /**
+     * Тест получения предметов пользователя с пагинацией.
+     */
+    @Test
+    void getUserItems_shouldHandlePagination() {
+        itemRepository.save(item);
+
+        // Создаем второй предмет
+        Item item2 = new Item();
+        item2.setName("Test Item 2");
+        item2.setDescription("Test Description 2");
+        item2.setAvailable(true);
+        item2.setOwner(owner);
+        itemRepository.save(item2);
+
+        Pageable pageable = PageRequest.of(0, 1);
+        var userItems = itemService.getUserItems(owner.getId(), pageable);
+
+        assertEquals(2, userItems.getTotalElements());
+        assertEquals(1, userItems.getContent().size());
     }
 }

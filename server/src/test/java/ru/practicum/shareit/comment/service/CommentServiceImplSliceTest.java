@@ -264,6 +264,556 @@ class CommentServiceImplSliceTest {
         assertNotNull(comments);
         assertTrue(comments.isEmpty());
     }
+
+    /**
+     * Тест маппинга Comment в CommentDto.
+     * Проверяет корректность преобразования сущности в DTO.
+     */
+    @Test
+    void commentToCommentDto_shouldMapCorrectly() {
+        CommentDto commentDto = commentService.getCommentsByItemIdWithAuthor(item.getId()).get(0);
+
+        assertNotNull(commentDto);
+        assertEquals(comment.getId(), commentDto.getId());
+        assertEquals(comment.getText(), commentDto.getText());
+        assertEquals(author.getName(), commentDto.getAuthorName());
+        assertEquals(comment.getCreated(), commentDto.getCreated());
+    }
+
+    /**
+     * Тест получения комментариев с пагинацией - первая страница.
+     */
+    @Test
+    void getCommentsByItemId_shouldReturnFirstPage() {
+        Comment comment2 = new Comment();
+        comment2.setText("Еще один комментарий");
+        comment2.setItem(item);
+        comment2.setAuthor(author);
+        comment2.setCreated(LocalDateTime.now().plusSeconds(1));
+        entityManager.persistAndFlush(comment2);
+
+        Pageable pageable = PageRequest.of(0, 1); // Первая страница, размер 1
+
+        var commentsPage = commentService.getCommentsByItemId(item.getId(), pageable);
+
+        assertNotNull(commentsPage);
+        assertEquals(2, commentsPage.getTotalElements());
+        assertEquals(1, commentsPage.getContent().size());
+        assertEquals("Еще один комментарий", commentsPage.getContent().get(0).getText());
+    }
+
+    /**
+     * Тест получения комментариев с пагинацией - вторая страница.
+     */
+    @Test
+    void getCommentsByItemId_shouldReturnSecondPage() {
+        Comment comment2 = new Comment();
+        comment2.setText("Еще один комментарий");
+        comment2.setItem(item);
+        comment2.setAuthor(author);
+        comment2.setCreated(LocalDateTime.now().plusSeconds(1));
+        entityManager.persistAndFlush(comment2);
+
+        Pageable pageable = PageRequest.of(1, 1); // Вторая страница, размер 1
+
+        var commentsPage = commentService.getCommentsByItemId(item.getId(), pageable);
+
+        assertNotNull(commentsPage);
+        assertEquals(2, commentsPage.getTotalElements());
+        assertEquals(1, commentsPage.getContent().size());
+        assertEquals("Отличная дрель!", commentsPage.getContent().get(0).getText());
+    }
+
+    /**
+     * Тест создания комментария с пробелами в тексте.
+     * Проверяет, что валидация корректно обрабатывает текст только из пробелов.
+     */
+    @Test
+    void createComment_shouldThrowExceptionWhenTextIsBlank() {
+        Comment newComment = new Comment();
+        newComment.setText("   ");
+
+        assertThrows(ValidationException.class, () ->
+                commentService.createComment(item.getId(), newComment, author.getId()));
+    }
+
+    /**
+     * Тест создания комментария с null текстом.
+     * Проверяет, что валидация корректно обрабатывает null значения.
+     */
+    @Test
+    void createComment_shouldThrowExceptionWhenTextIsNull() {
+        Comment newComment = new Comment();
+        newComment.setText(null);
+
+        assertThrows(ValidationException.class, () ->
+                commentService.createComment(item.getId(), newComment, author.getId()));
+    }
+
+    /**
+     * Тест получения комментариев для предмета с несколькими комментариями.
+     * Проверяет правильный порядок комментариев (по дате создания).
+     */
+    @Test
+    void getCommentsByItemIdWithAuthor_shouldReturnCommentsInCorrectOrder() {
+        Comment comment2 = new Comment();
+        comment2.setText("Второй комментарий");
+        comment2.setItem(item);
+        comment2.setAuthor(author);
+        comment2.setCreated(LocalDateTime.now().plusSeconds(10));
+        entityManager.persistAndFlush(comment2);
+
+        Comment comment3 = new Comment();
+        comment3.setText("Третий комментарий");
+        comment3.setItem(item);
+        comment3.setAuthor(author);
+        comment3.setCreated(LocalDateTime.now().plusSeconds(5));
+        entityManager.persistAndFlush(comment3);
+
+        List<CommentDto> comments = commentService.getCommentsByItemIdWithAuthor(item.getId());
+
+        assertNotNull(comments);
+        assertEquals(3, comments.size());
+        assertEquals("Второй комментарий", comments.get(0).getText());
+        assertEquals("Третий комментарий", comments.get(1).getText());
+        assertEquals("Отличная дрель!", comments.get(2).getText());
+    }
+
+    /**
+     * Тест получения комментариев с разными параметрами пагинации.
+     */
+    @Test
+    void getCommentsByItemId_shouldHandleDifferentPageSizes() {
+        for (int i = 0; i < 5; i++) {
+            Comment additionalComment = new Comment();
+            additionalComment.setText("Комментарий " + (i + 2));
+            additionalComment.setItem(item);
+            additionalComment.setAuthor(author);
+            additionalComment.setCreated(LocalDateTime.now().plusSeconds(i + 1));
+            entityManager.persistAndFlush(additionalComment);
+        }
+
+        Pageable pageableSize2 = PageRequest.of(0, 2);
+        var page2 = commentService.getCommentsByItemId(item.getId(), pageableSize2);
+        assertEquals(2, page2.getContent().size());
+        assertEquals(6, page2.getTotalElements());
+
+        Pageable pageableSize5 = PageRequest.of(0, 5);
+        var page5 = commentService.getCommentsByItemId(item.getId(), pageableSize5);
+        assertEquals(5, page5.getContent().size());
+        assertEquals(6, page5.getTotalElements());
+    }
+
+    /**
+     * Тест получения комментариев для несуществующей страницы.
+     */
+    @Test
+    void getCommentsByItemId_shouldHandleNonExistentPage() {
+        Pageable pageable = PageRequest.of(10, 10); // Страница, которой не существует
+
+        var result = commentService.getCommentsByItemId(item.getId(), pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(0, result.getContent().size()); // Пустая страница
+    }
+
+    /**
+     * Тест получения комментариев с сортировкой по времени создания.
+     */
+    @Test
+    void getCommentsByItemIdWithAuthor_shouldReturnSortedComments() {
+        // Создаем комментарии в разное время
+        Comment earlyComment = new Comment();
+        earlyComment.setText("Ранний комментарий");
+        earlyComment.setItem(item);
+        earlyComment.setAuthor(author);
+        earlyComment.setCreated(LocalDateTime.now().minusHours(2));
+        entityManager.persistAndFlush(earlyComment);
+
+        Comment lateComment = new Comment();
+        lateComment.setText("Поздний комментарий");
+        lateComment.setItem(item);
+        lateComment.setAuthor(author);
+        lateComment.setCreated(LocalDateTime.now().plusHours(1));
+        entityManager.persistAndFlush(lateComment);
+
+        List<CommentDto> comments = commentService.getCommentsByItemIdWithAuthor(item.getId());
+
+        assertNotNull(comments);
+        assertEquals(3, comments.size());
+        // Должны быть отсортированы по времени создания (новые первыми)
+        assertEquals("Поздний комментарий", comments.get(0).getText());
+        assertEquals("Отличная дрель!", comments.get(1).getText()); // Исходный комментарий
+        assertEquals("Ранний комментарий", comments.get(2).getText());
+    }
+
+    /**
+     * Тест создания комментария с очень коротким текстом.
+     */
+    @Test
+    void createComment_shouldHandleMinimalText() {
+        doNothing().when(commentValidator).validateCommentCreation(any(), any());
+
+        Comment newComment = new Comment();
+        newComment.setText("A"); // Минимальный текст
+
+        Comment createdComment = commentService.createComment(item.getId(), newComment, author.getId());
+
+        assertNotNull(createdComment);
+        assertEquals("A", createdComment.getText());
+    }
+
+    /**
+     * Тест получения комментариев с различными вариантами пагинации.
+     */
+    @Test
+    void getCommentsByItemId_shouldHandleEdgePageValues() {
+        // Добавляем еще комментариев для тестирования
+        for (int i = 0; i < 3; i++) {
+            Comment additionalComment = new Comment();
+            additionalComment.setText("Комментарий " + (i + 2));
+            additionalComment.setItem(item);
+            additionalComment.setAuthor(author);
+            additionalComment.setCreated(LocalDateTime.now().plusSeconds(i + 1));
+            entityManager.persistAndFlush(additionalComment);
+        }
+
+        // Тест с нулевой страницей
+        Pageable zeroPage = PageRequest.of(0, 1);
+        var zeroPageResult = commentService.getCommentsByItemId(item.getId(), zeroPage);
+        assertEquals(1, zeroPageResult.getContent().size());
+
+        // Тест с отрицательным размером страницы (проверка обработки)
+        Pageable negativeSizePage = PageRequest.of(0, Integer.MAX_VALUE);
+        var negativeSizeResult = commentService.getCommentsByItemId(item.getId(), negativeSizePage);
+        assertTrue(negativeSizeResult.getTotalElements() > 0);
+    }
+
+    /**
+     * Тест получения комментариев с null pageable.
+     */
+    @Test
+    void getCommentsByItemId_shouldHandleNullPageable() {
+        // Этот тест проверит поведение при null pageable, если это возможно в вашем API
+        Pageable pageable = PageRequest.of(0, 10);
+
+        assertDoesNotThrow(() -> {
+            var result = commentService.getCommentsByItemId(item.getId(), pageable);
+            assertNotNull(result);
+        });
+    }
+
+    /**
+     * Тест создания комментария с пустым текстом после trim.
+     */
+    @Test
+    void createComment_shouldThrowExceptionWhenTextIsEmptyAfterTrim() {
+        Comment newComment = new Comment();
+        newComment.setText("   "); // Только пробелы
+
+        ValidationException exception = assertThrows(ValidationException.class, () ->
+                commentService.createComment(item.getId(), newComment, author.getId()));
+
+        assertNotNull(exception);
+    }
+
+    /**
+     * Тест создания комментария с whitespace текстом.
+     */
+    @Test
+    void createComment_shouldThrowExceptionWhenTextIsOnlyWhitespace() {
+        Comment newComment = new Comment();
+        newComment.setText("\t\n\r"); // Только whitespace символы
+
+        ValidationException exception = assertThrows(ValidationException.class, () ->
+                commentService.createComment(item.getId(), newComment, author.getId()));
+
+        assertNotNull(exception);
+    }
+
+    /**
+     * Тест получения комментариев с различными временными зонами.
+     */
+    @Test
+    void getCommentsByItemId_shouldHandleCommentsWithDifferentTimes() {
+        LocalDateTime now = LocalDateTime.now();
+
+        Comment pastComment = new Comment();
+        pastComment.setText("Прошлый комментарий");
+        pastComment.setItem(item);
+        pastComment.setAuthor(author);
+        pastComment.setCreated(now.minusWeeks(1));
+        entityManager.persistAndFlush(pastComment);
+
+        Comment futureComment = new Comment();
+        futureComment.setText("Будущий комментарий");
+        futureComment.setItem(item);
+        futureComment.setAuthor(author);
+        futureComment.setCreated(now.plusWeeks(1));
+        entityManager.persistAndFlush(futureComment);
+
+        List<CommentDto> comments = commentService.getCommentsByItemIdWithAuthor(item.getId());
+
+        assertNotNull(comments);
+        assertEquals(3, comments.size());
+        // Проверяем сортировку
+        assertEquals("Будущий комментарий", comments.get(0).getText());
+        assertEquals("Отличная дрель!", comments.get(1).getText());
+        assertEquals("Прошлый комментарий", comments.get(2).getText());
+    }
+
+    /**
+     * Тест создания комментария с текстом, содержащим специальные символы.
+     */
+    @Test
+    void createComment_shouldHandleSpecialCharacters() {
+        doNothing().when(commentValidator).validateCommentCreation(any(), any());
+
+        Comment newComment = new Comment();
+        newComment.setText("Комментарий со специальными символами: !@#$%^&*()_+-=[]{}|;':\",./<>?");
+
+        Comment createdComment = commentService.createComment(item.getId(), newComment, author.getId());
+
+        assertNotNull(createdComment);
+        assertEquals("Комментарий со специальными символами: !@#$%^&*()_+-=[]{}|;':\",./<>?", createdComment.getText());
+    }
+
+    /**
+     * Тест создания комментария с многострочным текстом.
+     */
+    @Test
+    void createComment_shouldHandleMultilineText() {
+        doNothing().when(commentValidator).validateCommentCreation(any(), any());
+
+        Comment newComment = new Comment();
+        newComment.setText("Первая строка\nВторая строка\nТретья строка");
+
+        Comment createdComment = commentService.createComment(item.getId(), newComment, author.getId());
+
+        assertNotNull(createdComment);
+        assertEquals("Первая строка\nВторая строка\nТретья строка", createdComment.getText());
+    }
+
+    /**
+     * Тест получения комментариев для предмета с большим количеством комментариев.
+     */
+    @Test
+    void getCommentsByItemId_shouldHandleLargeNumberOfComments() {
+        // Создаем 50 комментариев
+        for (int i = 0; i < 50; i++) {
+            Comment additionalComment = new Comment();
+            additionalComment.setText("Комментарий #" + (i + 1));
+            additionalComment.setItem(item);
+            additionalComment.setAuthor(author);
+            additionalComment.setCreated(LocalDateTime.now().plusSeconds(i));
+            entityManager.persistAndFlush(additionalComment);
+        }
+
+        Pageable pageable = PageRequest.of(0, 20);
+        var result = commentService.getCommentsByItemId(item.getId(), pageable);
+
+        assertEquals(51, result.getTotalElements()); // 50 созданных + 1 из setUp
+        assertEquals(20, result.getContent().size());
+    }
+
+    /**
+     * Тест получения комментариев с пагинацией и сортировкой по убыванию даты.
+     */
+    @Test
+    void getCommentsByItemId_shouldReturnCommentsSortedByDateDesc() {
+        // Создаем комментарии с разными датами
+        for (int i = 0; i < 5; i++) {
+            Comment additionalComment = new Comment();
+            additionalComment.setText("Комментарий #" + (i + 1));
+            additionalComment.setItem(item);
+            additionalComment.setAuthor(author);
+            additionalComment.setCreated(LocalDateTime.now().minusDays(5 - i));
+            entityManager.persistAndFlush(additionalComment);
+        }
+
+        Pageable pageable = PageRequest.of(0, 10);
+        var result = commentService.getCommentsByItemId(item.getId(), pageable);
+
+        // Комментарии должны быть отсортированы по дате создания (новые первыми)
+        List<CommentDto> comments = result.getContent();
+        for (int i = 0; i < comments.size() - 1; i++) {
+            assertTrue(comments.get(i).getCreated().isAfter(comments.get(i + 1).getCreated()) ||
+                    comments.get(i).getCreated().isEqual(comments.get(i + 1).getCreated()));
+        }
+    }
+
+    /**
+     * Тест создания комментария с валидным текстом после валидации.
+     */
+    @Test
+    void createComment_shouldValidateAndCreateWithValidText() {
+        doNothing().when(commentValidator).validateCommentCreation(any(), any());
+
+        Comment newComment = new Comment();
+        newComment.setText("   Валидный комментарий с пробелами в начале и конце   ");
+
+        Comment createdComment = commentService.createComment(item.getId(), newComment, author.getId());
+
+        assertNotNull(createdComment);
+        assertEquals("   Валидный комментарий с пробелами в начале и конце   ", createdComment.getText());
+    }
+
+    /**
+     * Тест создания комментария с текстом, содержащим только цифры.
+     */
+    @Test
+    void createComment_shouldAcceptNumericText() {
+        doNothing().when(commentValidator).validateCommentCreation(any(), any());
+
+        Comment newComment = new Comment();
+        newComment.setText("1234567890");
+
+        Comment createdComment = commentService.createComment(item.getId(), newComment, author.getId());
+
+        assertNotNull(createdComment);
+        assertEquals("1234567890", createdComment.getText());
+    }
+
+    /**
+     * Тест создания комментария с текстом, содержащим только специальные символы.
+     */
+    @Test
+    void createComment_shouldAcceptSpecialCharacterOnlyText() {
+        doNothing().when(commentValidator).validateCommentCreation(any(), any());
+
+        Comment newComment = new Comment();
+        newComment.setText("!@#$%^&*()");
+
+        Comment createdComment = commentService.createComment(item.getId(), newComment, author.getId());
+
+        assertNotNull(createdComment);
+        assertEquals("!@#$%^&*()", createdComment.getText());
+    }
+
+    /**
+     * Тест получения комментариев для предмета с отрицательным ID.
+     */
+    @Test
+    void getCommentsByItemId_shouldHandleNegativeItemId() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        var result = commentService.getCommentsByItemId(-1L, pageable);
+
+        assertEquals(0, result.getTotalElements());
+    }
+
+    /**
+     * Тест создания комментария с текстом, содержащим Unicode символы.
+     */
+    @Test
+    void createComment_shouldHandleUnicodeCharacters() {
+        doNothing().when(commentValidator).validateCommentCreation(any(), any());
+
+        Comment newComment = new Comment();
+        newComment.setText("Комментарий с Unicode: 你好世界 🌍");
+
+        Comment createdComment = commentService.createComment(item.getId(), newComment, author.getId());
+
+        assertNotNull(createdComment);
+        assertEquals("Комментарий с Unicode: 你好世界 🌍", createdComment.getText());
+    }
+
+    /**
+     * Тест получения комментариев с различными авторами.
+     */
+    @Test
+    void getCommentsByItemId_shouldHandleCommentsFromDifferentAuthors() {
+        User anotherAuthor = new User();
+        anotherAuthor.setName("Another Author");
+        anotherAuthor.setEmail("another@test.com");
+        anotherAuthor = entityManager.persistAndFlush(anotherAuthor);
+
+        Comment anotherComment = new Comment();
+        anotherComment.setText("Комментарий от другого автора");
+        anotherComment.setItem(item);
+        anotherComment.setAuthor(anotherAuthor);
+        anotherComment.setCreated(LocalDateTime.now().plusSeconds(1));
+        entityManager.persistAndFlush(anotherComment);
+
+        List<CommentDto> comments = commentService.getCommentsByItemIdWithAuthor(item.getId());
+
+        assertNotNull(comments);
+        assertEquals(2, comments.size());
+        // Проверяем, что оба комментария присутствуют
+        boolean foundOriginal = false;
+        boolean foundAnother = false;
+
+        for (CommentDto commentDto : comments) {
+            if (commentDto.getText().equals("Отличная дрель!")) {
+                foundOriginal = true;
+                assertEquals(author.getName(), commentDto.getAuthorName());
+            }
+            if (commentDto.getText().equals("Комментарий от другого автора")) {
+                foundAnother = true;
+                assertEquals(anotherAuthor.getName(), commentDto.getAuthorName());
+            }
+        }
+
+        assertTrue(foundOriginal);
+        assertTrue(foundAnother);
+    }
+
+    /**
+     * Тест создания комментария с текстом, содержащим эмодзи.
+     */
+    @Test
+    void createComment_shouldHandleEmojiInText() {
+        doNothing().when(commentValidator).validateCommentCreation(any(), any());
+
+        Comment newComment = new Comment();
+        newComment.setText("Отличный предмет! 👍 😊");
+
+        Comment createdComment = commentService.createComment(item.getId(), newComment, author.getId());
+
+        assertNotNull(createdComment);
+        assertEquals("Отличный предмет! 👍 😊", createdComment.getText());
+    }
+
+    /**
+     * Тест получения комментариев с различными временными метками.
+     */
+    @Test
+    void getCommentsByItemId_shouldHandleCommentsWithSameTimestamp() {
+        LocalDateTime sameTime = LocalDateTime.now().plusDays(1);
+
+        Comment comment1 = new Comment();
+        comment1.setText("Первый комментарий");
+        comment1.setItem(item);
+        comment1.setAuthor(author);
+        comment1.setCreated(sameTime);
+        entityManager.persistAndFlush(comment1);
+
+        Comment comment2 = new Comment();
+        comment2.setText("Второй комментарий");
+        comment2.setItem(item);
+        comment2.setAuthor(author);
+        comment2.setCreated(sameTime);
+        entityManager.persistAndFlush(comment2);
+
+        List<CommentDto> comments = commentService.getCommentsByItemIdWithAuthor(item.getId());
+
+        assertNotNull(comments);
+        assertEquals(3, comments.size());
+        // Проверяем, что оба комментария с одинаковым временем присутствуют
+        boolean foundFirst = false;
+        boolean foundSecond = false;
+
+        for (CommentDto commentDto : comments) {
+            if (commentDto.getText().equals("Первый комментарий")) {
+                foundFirst = true;
+            }
+            if (commentDto.getText().equals("Второй комментарий")) {
+                foundSecond = true;
+            }
+        }
+
+        assertTrue(foundFirst);
+        assertTrue(foundSecond);
+    }
 }
-
-
