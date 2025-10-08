@@ -18,16 +18,12 @@ import ru.practicum.shareit.user.validator.UserValidator;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Интеграционные тесты для сервиса пользователей {@link UserServiceImpl}.
- * Тестирует все основные функции сервиса пользователей:
- * - Создание пользователя
- * - Получение пользователя по ID
- * - Обновление пользователя
- * - Получение списка всех пользователей
- * - Удаление пользователя
+ * Slice тесты для сервиса пользователей {@link UserServiceImpl}.
+ * Тестируют функциональность сервиса с использованием реальной базы данных
+ * без внешних зависимостей (сервис не имеет внешних зависимостей).
  *
- * Тесты используют реальную базу данных в памяти (H2) через TestEntityManager
- * для проверки работы с данными и бизнес-логикой сервиса.
+ * Используют @DataJpaTest для тестирования слоя работы с БД и @Import для
+ * загрузки тестируемого сервиса и его зависимостей.
  *
  * Класс использует аннотацию {@link DirtiesContext} для очистки контекста
  * после каждого теста, обеспечивая независимость тестов друг от друга.
@@ -38,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @Import({UserServiceImpl.class, UserValidator.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class UserServiceImplIntegrationTest {
+class UserServiceImplSliceTest {
 
     @Autowired
     private UserService userService;
