@@ -11,7 +11,6 @@ import ru.practicum.shareit.booking.status.BookingState;
 import ru.practicum.shareit.booking.status.BookingStatus;
 import ru.practicum.shareit.booking.validator.BookingValidator;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
 
 import java.time.LocalDateTime;
 
