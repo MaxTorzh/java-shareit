@@ -8,3 +8,4 @@ echo "Gateway is up"
 result=$?
 docker compose -f docker-compose.yml logs
 exit $result
+
