@@ -24,7 +24,7 @@ public class ItemClient extends BaseClient {
         super(
                 builder
                         .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
-                        .requestFactory(HttpComponentsClientHttpRequestFactory.class)
+                        .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
                         .build()
         );
         log.debug("ItemClient created with base URL: {}", serverUrl + API_PREFIX);

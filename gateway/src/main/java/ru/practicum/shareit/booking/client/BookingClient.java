@@ -22,7 +22,7 @@ public class BookingClient extends BaseClient {
         super(
                 builder
                         .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
-                        .requestFactory(HttpComponentsClientHttpRequestFactory.class)
+                        .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
                         .build()
         );
     }
@@ -62,4 +62,5 @@ public class BookingClient extends BaseClient {
         return delete("/" + bookingId, userId);
     }
 }
+
 
