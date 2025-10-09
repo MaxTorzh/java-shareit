@@ -219,8 +219,8 @@ class ItemServiceImplSliceTest {
         Item updatedItem = itemService.updateItem(savedItem.getId(), updateItem);
 
         assertEquals("Updated Name", updatedItem.getName());
-        assertEquals("Test Description", updatedItem.getDescription()); // Не должен измениться
-        assertTrue(updatedItem.getAvailable()); // Не должен измениться
+        assertEquals("Test Description", updatedItem.getDescription());
+        assertTrue(updatedItem.getAvailable());
     }
 
     /**

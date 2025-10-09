@@ -178,7 +178,6 @@ class BookingControllerIntegrationTest {
      */
     @Test
     void createBooking_shouldReturnBadRequestWhenItemNotAvailable() throws Exception {
-        // Сделать предмет недоступным
         ItemRequestDto itemDto = new ItemRequestDto();
         itemDto.setName("Test Item");
         itemDto.setDescription("Test Description");
@@ -241,7 +240,6 @@ class BookingControllerIntegrationTest {
      */
     @Test
     void approveBooking_shouldReturnForbiddenWhenNotOwner() throws Exception {
-        // Создать другого пользователя
         UserDto otherUser = new UserDto();
         otherUser.setName("Other User");
         otherUser.setEmail("other@test.com");
@@ -384,7 +382,6 @@ class BookingControllerIntegrationTest {
      */
     @Test
     void getUserBookings_shouldHandlePagination() throws Exception {
-        // Создать несколько бронирований
         for (int i = 0; i < 5; i++) {
             BookItemRequestDto bookingDto = new BookItemRequestDto();
             bookingDto.setItemId(itemId);
@@ -398,7 +395,6 @@ class BookingControllerIntegrationTest {
                     .andExpect(status().isOk());
         }
 
-        // Проверить пагинацию
         mockMvc.perform(get("/bookings")
                         .header(SHARER_HEADER, booker.getId())
                         .param("state", "ALL")
@@ -661,13 +657,11 @@ class BookingControllerIntegrationTest {
 
         Long bookingId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asLong();
 
-        // Подтвердить бронирование
         mockMvc.perform(patch("/bookings/{bookingId}", bookingId)
                         .header(SHARER_HEADER, owner.getId())
                         .param("approved", "true"))
                 .andExpect(status().isOk());
 
-        // Попытаться отменить подтвержденное бронирование
         mockMvc.perform(delete("/bookings/{bookingId}", bookingId)
                         .header(SHARER_HEADER, booker.getId()))
                 .andExpect(status().isBadRequest());

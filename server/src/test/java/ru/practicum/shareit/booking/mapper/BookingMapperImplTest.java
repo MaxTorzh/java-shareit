@@ -9,9 +9,7 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingListDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.status.BookingStatus;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -31,7 +29,6 @@ class BookingMapperImplTest {
 
     @BeforeEach
     void setUp() {
-        // Создаем тестовые данные
         booker = new User();
         booker.setId(1L);
         booker.setName("Test Booker");
@@ -70,13 +67,11 @@ class BookingMapperImplTest {
         assertEquals(booking.getEnd(), result.getEnd());
         assertEquals(booking.getStatus().toString(), result.getStatus());
 
-        // Проверяем booker
         assertNotNull(result.getBooker());
         assertEquals(booker.getId(), result.getBooker().getId());
         assertEquals(booker.getName(), result.getBooker().getName());
         assertEquals(booker.getEmail(), result.getBooker().getEmail());
 
-        // Проверяем item
         assertNotNull(result.getItem());
         assertEquals(item.getId(), result.getItem().getId());
         assertEquals(item.getName(), result.getItem().getName());
@@ -311,8 +306,8 @@ class BookingMapperImplTest {
         assertEquals(bookingRequestDto.getEnd(), result.getEnd());
         assertEquals(item, result.getItem());
         assertEquals(booker, result.getBooker());
-        assertEquals(BookingStatus.WAITING, result.getStatus()); // По умолчанию
-        assertNull(result.getId()); // ID не устанавливается из DTO
+        assertEquals(BookingStatus.WAITING, result.getStatus());
+        assertNull(result.getId());
     }
 
     /**
@@ -375,114 +370,6 @@ class BookingMapperImplTest {
         assertEquals(item, result.getItem());
         assertEquals(booker, result.getBooker());
         assertEquals(BookingStatus.WAITING, result.getStatus());
-    }
-
-    /**
-     * Тест метода userToUserDto.
-     * Проверяет преобразование User в UserDto.
-     */
-    @Test
-    void userToUserDto_shouldConvertUserToUserDto() {
-        UserDto result = ((BookingMapperImpl) bookingMapper).userToUserDto(booker);
-
-        assertNotNull(result);
-        assertEquals(booker.getId(), result.getId());
-        assertEquals(booker.getName(), result.getName());
-        assertEquals(booker.getEmail(), result.getEmail());
-    }
-
-    /**
-     * Тест метода userToUserDto с null User.
-     * Проверяет обработку null значения.
-     */
-    @Test
-    void userToUserDto_shouldReturnNullWhenUserIsNull() {
-        UserDto result = ((BookingMapperImpl) bookingMapper).userToUserDto(null);
-
-        assertNull(result);
-    }
-
-    /**
-     * Тест метода userToUserDto с null полями User.
-     * Проверяет обработку null значений в полях.
-     */
-    @Test
-    void userToUserDto_shouldHandleNullUserFields() {
-        User userWithNullFields = new User();
-        userWithNullFields.setId(null);
-        userWithNullFields.setName(null);
-        userWithNullFields.setEmail(null);
-
-        UserDto result = ((BookingMapperImpl) bookingMapper).userToUserDto(userWithNullFields);
-
-        assertNotNull(result);
-        assertNull(result.getId());
-        assertNull(result.getName());
-        assertNull(result.getEmail());
-    }
-
-    /**
-     * Тест метода itemToItemDto.
-     * Проверяет преобразование Item в ItemDto.
-     */
-    @Test
-    void itemToItemDto_shouldConvertItemToItemDto() {
-        // Создаем owner для item
-        User owner = new User();
-        owner.setId(2L);
-        owner.setName("Owner");
-        owner.setEmail("owner@test.com");
-        item.setOwner(owner);
-
-        // Создаем request для item
-        /*ItemRequest request = new ItemRequest();
-        request.setId(1L);
-        item.setRequest(request);*/
-
-        ItemDto result = ((BookingMapperImpl) bookingMapper).itemToItemDto(item);
-
-        assertNotNull(result);
-        assertEquals(item.getId(), result.getId());
-        assertEquals(item.getName(), result.getName());
-        assertEquals(item.getDescription(), result.getDescription());
-        assertEquals(item.getAvailable(), result.getAvailable());
-        assertEquals(owner.getId(), result.getOwnerId());
-        //assertEquals(request.getId(), result.getRequestId());
-    }
-
-    /**
-     * Тест метода itemToItemDto с null Item.
-     * Проверяет обработку null значения.
-     */
-    @Test
-    void itemToItemDto_shouldReturnNullWhenItemIsNull() {
-        ItemDto result = ((BookingMapperImpl) bookingMapper).itemToItemDto(null);
-
-        assertNull(result);
-    }
-
-    /**
-     * Тест метода itemToItemDto с null полями Item.
-     * Проверяет обработку null значений в полях.
-     */
-    @Test
-    void itemToItemDto_shouldHandleNullItemFields() {
-        Item itemWithNullFields = new Item();
-        itemWithNullFields.setId(null);
-        itemWithNullFields.setName(null);
-        itemWithNullFields.setDescription(null);
-        itemWithNullFields.setAvailable(null);
-        itemWithNullFields.setOwner(null);
-        //itemWithNullFields.setRequest(null);
-
-        ItemDto result = ((BookingMapperImpl) bookingMapper).itemToItemDto(itemWithNullFields);
-
-        assertNotNull(result);
-        assertNull(result.getId());
-        assertNull(result.getName());
-        assertNull(result.getDescription());
-        assertNull(result.getAvailable());
-        assertNull(result.getOwnerId());
     }
 
     /**

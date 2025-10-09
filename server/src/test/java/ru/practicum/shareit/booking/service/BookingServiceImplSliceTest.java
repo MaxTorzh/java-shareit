@@ -264,7 +264,6 @@ class BookingServiceImplSliceTest {
      */
     @Test
     void getUserBookings_shouldHandlePagination() {
-        // Создаем несколько бронирований
         for (int i = 0; i < 5; i++) {
             Booking testBooking = new Booking();
             testBooking.setStart(LocalDateTime.now().plusDays(i + 1));
@@ -275,7 +274,7 @@ class BookingServiceImplSliceTest {
             bookingRepository.save(testBooking);
         }
 
-        Pageable pageable = PageRequest.of(1, 2); // Вторая страница, 2 элемента на странице
+        Pageable pageable = PageRequest.of(1, 2);
         var userBookings = bookingService.getUserBookings(booker.getId(), "ALL", pageable);
 
         assertEquals(5, userBookings.getTotalElements());
@@ -287,7 +286,6 @@ class BookingServiceImplSliceTest {
      */
     @Test
     void getUserBookings_shouldReturnCurrentBookings() {
-        // Создаем текущее бронирование
         Booking currentBooking = new Booking();
         currentBooking.setStart(LocalDateTime.now().minusDays(1));
         currentBooking.setEnd(LocalDateTime.now().plusDays(1));
@@ -308,7 +306,6 @@ class BookingServiceImplSliceTest {
      */
     @Test
     void getUserBookings_shouldReturnPastBookings() {
-        // Создаем прошедшее бронирование
         Booking pastBooking = new Booking();
         pastBooking.setStart(LocalDateTime.now().minusDays(2));
         pastBooking.setEnd(LocalDateTime.now().minusDays(1));
@@ -425,11 +422,8 @@ class BookingServiceImplSliceTest {
      */
     @Test
     void getOwnerBookings_shouldHandleDifferentStates() {
-        Booking savedBooking = bookingRepository.save(booking);
-
         Pageable pageable = PageRequest.of(0, 10);
 
-        // Тест разных состояний
         var allBookings = bookingService.getOwnerBookings(owner.getId(), "ALL", pageable);
         var waitingBookings = bookingService.getOwnerBookings(owner.getId(), "WAITING", pageable);
 
@@ -443,7 +437,6 @@ class BookingServiceImplSliceTest {
      */
     @Test
     void getOwnerBookings_shouldHandlePagination() {
-        // Создаем несколько бронирований
         for (int i = 0; i < 5; i++) {
             Booking testBooking = new Booking();
             testBooking.setStart(LocalDateTime.now().plusDays(i + 1));
@@ -454,7 +447,7 @@ class BookingServiceImplSliceTest {
             bookingRepository.save(testBooking);
         }
 
-        Pageable pageable = PageRequest.of(0, 3); // Первая страница, 3 элемента на странице
+        Pageable pageable = PageRequest.of(0, 3);
         var ownerBookings = bookingService.getOwnerBookings(owner.getId(), "ALL", pageable);
 
         assertEquals(5, ownerBookings.getTotalElements());

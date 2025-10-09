@@ -26,7 +26,6 @@ class ItemMapperImplTest {
 
     @BeforeEach
     void setUp() {
-        // Создаем тестовые данные
         owner = new User();
         owner.setId(1L);
         owner.setName("Test Owner");
@@ -235,7 +234,7 @@ class ItemMapperImplTest {
         assertEquals(itemRequestDto.getAvailable(), result.getAvailable());
         assertEquals(owner, result.getOwner());
         assertEquals(request, result.getRequest());
-        assertNull(result.getId()); // ID не устанавливается из DTO
+        assertNull(result.getId());
     }
 
     /**

@@ -47,18 +47,15 @@ class CommentValidatorTest {
      */
     @Test
     void validateCommentCreation_shouldThrowExceptionWhenUserNotRentedItem() {
-        // Нет бронирований у пользователя
         when(bookingRepository.findByBookerIdAndItemIdAndStatus(
                 eq(user.getId()), eq(item.getId()), eq(BookingStatus.APPROVED)))
-                .thenReturn(List.of()); // Пустой список
+                .thenReturn(List.of());
 
-        // Проверяем, что выбрасывается исключение
         ValidationException exception = assertThrows(ValidationException.class,
                 () -> commentValidator.validateCommentCreation(item, user));
 
         assertEquals("Пользователь не брал эту вещь в аренду", exception.getMessage());
 
-        // Проверяем, что второй метод не вызывается
         verify(bookingRepository).findByBookerIdAndItemIdAndStatus(
                 user.getId(), item.getId(), BookingStatus.APPROVED);
         verify(bookingRepository, never()).findFinishedBookingsByUserAndItem(
@@ -71,7 +68,6 @@ class CommentValidatorTest {
      */
     @Test
     void validateCommentCreation_shouldPassWithMultipleBookings() {
-        // Несколько бронирований
         Booking booking1 = new Booking();
         booking1.setId(1L);
 
@@ -86,7 +82,6 @@ class CommentValidatorTest {
                 eq(user.getId()), eq(item.getId()), eq(BookingStatus.APPROVED), any(LocalDateTime.class)))
                 .thenReturn(List.of(booking1));
 
-        // Выполняем проверку - исключений быть не должно
         assertDoesNotThrow(() -> commentValidator.validateCommentCreation(item, user));
     }
 
@@ -110,7 +105,6 @@ class CommentValidatorTest {
                 eq(user.getId()), eq(item.getId()), eq(BookingStatus.APPROVED), any(LocalDateTime.class)))
                 .thenReturn(List.of(booking1, booking2));
 
-        // Выполняем проверку - исключений быть не должно
         assertDoesNotThrow(() -> commentValidator.validateCommentCreation(item, user));
     }
 
@@ -129,7 +123,7 @@ class CommentValidatorTest {
 
         when(bookingRepository.findFinishedBookingsByUserAndItem(
                 eq(user.getId()), eq(item.getId()), eq(BookingStatus.APPROVED), any(LocalDateTime.class)))
-                .thenReturn(List.of()); // Нет завершенных бронирований
+                .thenReturn(List.of());
 
         ValidationException exception = assertThrows(ValidationException.class,
                 () -> commentValidator.validateCommentCreation(item, user));
@@ -143,10 +137,9 @@ class CommentValidatorTest {
      */
     @Test
     void validateCommentCreation_shouldCheckOnlyApprovedBookings() {
-        // Только отклоненные бронирования
         when(bookingRepository.findByBookerIdAndItemIdAndStatus(
                 eq(user.getId()), eq(item.getId()), eq(BookingStatus.APPROVED)))
-                .thenReturn(List.of()); // Нет APPROVED бронирований
+                .thenReturn(List.of());
 
         ValidationException exception = assertThrows(ValidationException.class,
                 () -> commentValidator.validateCommentCreation(item, user));

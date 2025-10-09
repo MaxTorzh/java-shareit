@@ -7,3 +7,7 @@ server:
 
 shareit-server:
   url: http://localhost:9090/
+
+hikari:
+  connection-timeout: 60000
+  validation-timeout: 5000

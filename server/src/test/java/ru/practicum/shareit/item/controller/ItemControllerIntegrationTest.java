@@ -384,7 +384,6 @@ class ItemControllerIntegrationTest {
      */
     @Test
     void updateItem_shouldUpdateAndReturnItem() throws Exception {
-        // Создаем предмет
         ItemRequestDto itemDto = new ItemRequestDto();
         itemDto.setName("Original Item");
         itemDto.setDescription("Original Description");
@@ -459,7 +458,6 @@ class ItemControllerIntegrationTest {
      */
     @Test
     void deleteItem_shouldRemoveItem() throws Exception {
-        // Создаем предмет
         ItemRequestDto itemDto = new ItemRequestDto();
         itemDto.setName("Test Item");
         itemDto.setDescription("Test Description");
@@ -503,7 +501,7 @@ class ItemControllerIntegrationTest {
     @Test
     void createItem_shouldReturnBadRequestWhenNameIsTooLong() throws Exception {
         ItemRequestDto itemDto = new ItemRequestDto();
-        itemDto.setName("A".repeat(256)); // Слишком длинное имя
+        itemDto.setName("A".repeat(256));
         itemDto.setDescription("Test Description");
         itemDto.setAvailable(true);
 
@@ -524,7 +522,7 @@ class ItemControllerIntegrationTest {
     void createItem_shouldReturnBadRequestWhenDescriptionIsTooLong() throws Exception {
         ItemRequestDto itemDto = new ItemRequestDto();
         itemDto.setName("Test Item");
-        itemDto.setDescription("A".repeat(4001)); // Слишком длинное описание
+        itemDto.setDescription("A".repeat(4001));
         itemDto.setAvailable(true);
 
         mockMvc.perform(post("/items")
@@ -596,14 +594,14 @@ class ItemControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/items/search")
-                        .param("text", "test") // Строчные буквы
+                        .param("text", "test")
                         .param("from", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
 
         mockMvc.perform(get("/items/search")
-                        .param("text", "TEST") // Заглавные буквы
+                        .param("text", "TEST")
                         .param("from", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())

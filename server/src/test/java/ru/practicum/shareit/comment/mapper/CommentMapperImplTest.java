@@ -28,7 +28,6 @@ class CommentMapperImplTest {
 
     @BeforeEach
     void setUp() {
-        // Создаем тестовые данные
         item = new Item();
         item.setId(1L);
 
@@ -181,8 +180,8 @@ class CommentMapperImplTest {
         assertEquals(commentDto.getText(), result.getText());
         assertEquals(item, result.getItem());
         assertEquals(author, result.getAuthor());
-        assertNull(result.getId()); // ID не устанавливается из DTO
-        assertNull(result.getCreated()); // Created не устанавливается из DTO
+        assertNull(result.getId());
+        assertNull(result.getCreated());
     }
 
     /**
@@ -249,7 +248,6 @@ class CommentMapperImplTest {
         List<Comment> comments = new ArrayList<>();
         comments.add(comment);
 
-        // Добавляем еще один комментарий
         Comment comment2 = new Comment();
         comment2.setId(2L);
         comment2.setText("Second comment");
@@ -302,14 +300,14 @@ class CommentMapperImplTest {
         List<Comment> comments = new ArrayList<>();
         comments.add(comment);
         comments.add(null);
-        comments.add(comment); // Добавляем еще один валидный элемент
+        comments.add(comment);
 
         List<CommentDto> result = commentMapper.toDtoList(comments);
 
         assertNotNull(result);
         assertEquals(3, result.size());
         assertNotNull(result.get(0));
-        assertNull(result.get(1)); // Null элемент должен остаться null
+        assertNull(result.get(1));
         assertNotNull(result.get(2));
     }
 
