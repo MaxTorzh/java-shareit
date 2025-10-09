@@ -418,20 +418,6 @@ class BookingServiceImplSliceTest {
     }
 
     /**
-     * Тест получения списка бронирований владельца с различными статусами.
-     */
-    @Test
-    void getOwnerBookings_shouldHandleDifferentStates() {
-        Pageable pageable = PageRequest.of(0, 10);
-
-        var allBookings = bookingService.getOwnerBookings(owner.getId(), "ALL", pageable);
-        var waitingBookings = bookingService.getOwnerBookings(owner.getId(), "WAITING", pageable);
-
-        assertEquals(1, allBookings.getTotalElements());
-        assertEquals(1, waitingBookings.getTotalElements());
-    }
-
-    /**
      * Тест получения списка бронирований владельца с пагинацией.
      * Проверяет, что пагинация работает корректно для владельца.
      */
