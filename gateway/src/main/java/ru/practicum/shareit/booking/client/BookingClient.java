@@ -22,7 +22,7 @@ public class BookingClient extends BaseClient {
         super(
                 builder
                         .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
-                        .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
+                        .requestFactory(HttpComponentsClientHttpRequestFactory.class)
                         .build()
         );
     }
@@ -35,7 +35,6 @@ public class BookingClient extends BaseClient {
         );
         return get("?state={state}&from={from}&size={size}", userId, parameters);
     }
-
 
     public ResponseEntity<Object> createBooking(long userId, BookItemRequestDto requestDto) {
         return post("", userId, requestDto);
@@ -63,3 +62,4 @@ public class BookingClient extends BaseClient {
         return delete("/" + bookingId, userId);
     }
 }
+
