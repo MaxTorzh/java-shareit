@@ -15,9 +15,9 @@ spring:
       mode: always
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/shareit
-    username: dbuser
-    password: 12345
+    url: jdbc:postgresql://db:5432/shareit
+    username: shareit
+    password: shareit
     hikari:
       connection-timeout: 60000
       validation-timeout: 5000
