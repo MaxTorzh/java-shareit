@@ -22,6 +22,9 @@ spring:
     url: jdbc:postgresql://localhost:5432/shareit
     username: dbuser
     password: 12345
+    hikari:
+      connection-timeout: 60000
+      validation-timeout: 5000
 
 ---
 spring:
