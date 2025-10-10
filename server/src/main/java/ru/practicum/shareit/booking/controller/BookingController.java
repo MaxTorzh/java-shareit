@@ -114,5 +114,6 @@ public class BookingController {
         log.info("Получен запрос на отмену бронирования с ID: {} от пользователя с ID: {}", bookingId, userId);
         bookingService.cancelBooking(bookingId, userId);
     }
+
 }
 
